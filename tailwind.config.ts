@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: "#FFF8EF",
+        bg: "#FFFFFF",
         ink: "#22223B",
         coral: "#FF6B5B",
         "coral-dark": "#E8503F",
@@ -16,8 +16,8 @@ export default {
         pink: "#FF6FA5",
       },
       fontFamily: {
-        display: ["Baloo 2", "sans-serif"],
-        body: ["Plus Jakarta Sans", "sans-serif"],
+        display: ["var(--font-display)", "sans-serif"],
+        body: ["var(--font-body)", "sans-serif"],
       },
     },
   },

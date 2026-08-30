@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #FFFFFF;
+  --ink: #22223B;
+  --coral: #FF6B5B;
+  --coral-dark: #E8503F;
+  --sun: #FFC93C;
+  --mint: #2FC1A3;
+  --sky: #4D8DFF;
+  --lilac: #9B6BFF;
+  --pink: #FF6FA5;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Blobs décoratifs animés du hero */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-22px) translateX(12px); }
+}
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.4;
+  pointer-events: none;
+  animation: floaty 9s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .blob { animation: none; }
+}
+
+/* Défilement horizontal continu des dernières annonces */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
+
+/* Masquer la scrollbar de la barre de catégories (scroll horizontal mobile) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
