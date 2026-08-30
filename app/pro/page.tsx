@@ -19,8 +19,10 @@ const PLANS = [
   {
     name: "Visibilité",
     emoji: "🚀",
-    price: "39€",
+    price: "19€",
+    oldPrice: "39€",
     period: "/mois",
+    launchNote: "Offre de lancement : 19€/mois pendant 6 mois, puis 39€/mois. Sans engagement.",
     desc: "Pour développer votre activité sur votre secteur.",
     highlight: true,
     features: [
@@ -142,16 +144,26 @@ export default function ProPage() {
               >
                 {p.highlight && (
                   <span className="inline-block text-[11px] font-bold text-white bg-gradient-to-r from-coral to-coral-dark px-3 py-1 rounded-full mb-4">
-                    ⭐ Le plus choisi
+                    🎉 Offre de lancement
                   </span>
                 )}
                 <div className="text-3xl mb-2">{p.emoji}</div>
                 <h3 className="text-xl font-bold">{p.name}</h3>
                 <p className="text-sm text-neutral-500 font-body mt-1 mb-5">{p.desc}</p>
-                <div className="flex items-baseline gap-1 mb-6">
+                <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-4xl font-extrabold">{p.price}</span>
                   <span className="text-sm font-bold text-neutral-400">{p.period}</span>
+                  {(p as any).oldPrice && (
+                    <span className="text-lg font-bold text-neutral-300 line-through">{(p as any).oldPrice}</span>
+                  )}
                 </div>
+                {(p as any).launchNote ? (
+                  <p className="text-[11px] font-bold text-coral-dark bg-orange-100 rounded-xl px-3 py-2 mb-4">
+                    {(p as any).launchNote}
+                  </p>
+                ) : (
+                  <div className="mb-4" />
+                )}
                 <ul className="space-y-2.5 mb-8 font-body">
                   {p.features.map((f) => (
                     <li key={f} className="flex gap-2 text-sm font-semibold text-ink/80">

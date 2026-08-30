@@ -32,7 +32,7 @@ export default async function FicheProPage({ params }: { params: Promise<{ id: s
 
   return (
     <main className="font-display bg-neutral-50 min-h-screen py-10">
-      <div className="max-w-4xl mx-auto px-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {base && (
           <a
             href={`/${base.slug}`}

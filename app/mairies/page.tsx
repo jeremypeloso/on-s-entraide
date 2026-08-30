@@ -17,8 +17,10 @@ const PLANS = [
     name: "Bourg",
     emoji: "⛪",
     pop: "2 000 à 10 000 habitants",
-    price: "99€",
+    price: "49€",
+    oldPrice: "99€",
     period: "/mois",
+    launchNote: "Offre de lancement : 49€/mois la première année, puis 99€/mois.",
     highlight: true,
     features: [
       "Tout Village, plus :",
@@ -191,13 +193,28 @@ export default function MairiesPage() {
                     : "bg-white border-neutral-200 shadow-md"
                 }`}
               >
+                {p.highlight && (
+                  <span className="inline-block text-[11px] font-bold text-white bg-sky px-3 py-1 rounded-full mb-3">
+                    🎉 Offre de lancement
+                  </span>
+                )}
                 <div className="text-3xl mb-2">{p.emoji}</div>
                 <h3 className="text-xl font-bold">{p.name}</h3>
                 <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mt-1 mb-5">{p.pop}</p>
-                <div className="flex items-baseline gap-1 mb-6">
+                <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-4xl font-extrabold">{p.price}</span>
                   <span className="text-sm font-bold text-neutral-400">{p.period}</span>
+                  {(p as any).oldPrice && (
+                    <span className="text-lg font-bold text-neutral-300 line-through">{(p as any).oldPrice}</span>
+                  )}
                 </div>
+                {(p as any).launchNote ? (
+                  <p className="text-[11px] font-bold text-sky bg-sky/10 rounded-xl px-3 py-2 mb-4">
+                    {(p as any).launchNote}
+                  </p>
+                ) : (
+                  <div className="mb-4" />
+                )}
                 <ul className="space-y-2.5 mb-8 font-body">
                   {p.features.map((f) => (
                     <li key={f} className="flex gap-2 text-sm font-semibold text-ink/80">

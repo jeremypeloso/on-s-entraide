@@ -30,8 +30,6 @@ export default function ZoneMap({
       const L = mod.default ?? mod;
       if (cancelled || !mapRef.current) return;
 
-      console.log("ZoneMap init:", { lat, lng, radiusKm, leafletVersion: L?.version });
-
       if (typeof lat !== "number" || typeof lng !== "number" || isNaN(lat) || isNaN(lng)) {
         console.error("ZoneMap: coordonnées invalides", { lat, lng });
         return;

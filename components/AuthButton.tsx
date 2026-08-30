@@ -52,9 +52,14 @@ export default function AuthButton() {
     return (
       <a
         href="/connexion"
-        className="hidden sm:inline-flex text-sm font-bold px-5 py-2.5 rounded-full text-ink/70 hover:text-ink hover:bg-neutral-100 transition"
+        className="inline-flex items-center gap-2 text-sm font-bold px-3 sm:px-5 py-2.5 rounded-full text-ink/70 hover:text-ink hover:bg-neutral-100 transition"
+        aria-label="Se connecter"
       >
-        Se connecter
+        <svg className="sm:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span className="hidden sm:inline">Se connecter</span>
       </a>
     );
   }
@@ -62,13 +67,13 @@ export default function AuthButton() {
   return (
     <a
       href="/compte"
-      className="hidden sm:inline-flex items-center gap-2 text-sm font-bold pl-2 pr-4 py-1.5 rounded-full hover:bg-neutral-100 transition"
+      className="inline-flex items-center gap-2 text-sm font-bold pl-2 pr-2 sm:pr-4 py-1.5 rounded-full hover:bg-neutral-100 transition"
       aria-label="Mon compte"
     >
       <span className="w-8 h-8 rounded-full bg-gradient-to-br from-coral via-pink to-lilac text-white flex items-center justify-center text-sm font-extrabold">
         {state.initial}
       </span>
-      Mon compte
+      <span className="hidden sm:inline">Mon compte</span>
     </a>
   );
 }

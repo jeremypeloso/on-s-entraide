@@ -17,8 +17,6 @@ export default async function CommunePage({
     .eq("slug", slug)
     .single();
 
-  console.log("SLUG:", slug, "| COMMUNE:", commune?.nom, "| ERROR:", error?.message);
-
   if (!commune) notFound();
 
   const {
@@ -95,8 +93,8 @@ export default async function CommunePage({
   return (
     <main className="font-display">
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
-      <div className="rounded-3xl bg-gradient-to-br from-mint/20 to-sky/20 p-8 mb-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="rounded-3xl bg-gradient-to-br from-mint/20 to-sky/20 p-5 sm:p-8 mb-8">
         <div className="flex flex-col md:flex-row md:items-start gap-6">
           <div className="flex-1">
             <p className="text-xs font-bold uppercase text-neutral-500">

@@ -79,7 +79,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-ink/35 to-ink/60" />
 
         <div className="max-w-3xl mx-auto text-center relative z-10 px-6 pt-32 pb-32">
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.05] mb-4 text-white drop-shadow-lg">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold leading-[1.05] mb-4 text-white drop-shadow-lg">
             Un coup de main,{" "}
             <span className="bg-gradient-to-r from-sun via-coral to-pink bg-clip-text text-transparent">
               à deux clics

@@ -57,7 +57,7 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
 
   return (
     <main className="font-display bg-neutral-50 min-h-screen py-10">
-      <div className="max-w-4xl mx-auto px-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Fil d'ariane */}
         <a
           href={`/${commune?.slug}`}
@@ -76,7 +76,7 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
                 style={{ background: annonce.categories?.color_hex ?? "#FF6B5B" }}
               />
 
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <div className="flex items-center gap-3 flex-wrap mb-4">
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-neutral-100">
                     {annonce.categories?.emoji} {annonce.categories?.label}
