@@ -50,7 +50,6 @@ export default function ModifierAnnoncePage({ params }: { params: Promise<{ id: 
       setCategoryId(annonce.category_id);
       setStatut(annonce.statut);
       setPhotoUrl(annonce.photo_url);
-      // @ts-expect-error jointure typée souplement
       setCommuneSlug(annonce.communes?.slug ?? "");
 
       const { data: cats } = await supabase

@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export async function createClient() {
@@ -12,13 +13,29 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
+
+        setAll(
+          cookiesToSet: {
+            name: string;
+            value: string;
+            options?: {
+              domain?: string;
+              path?: string;
+              expires?: Date;
+              httpOnly?: boolean;
+              secure?: boolean;
+              sameSite?: "lax" | "strict" | "none";
+              maxAge?: number;
+            };
+          }[]
+        ) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
           } catch {
-            // appelé depuis un Server Component : ignorable si le middleware gère la session
+            // Certaines opérations de rendu serveur ne permettent pas
+            // toujours de modifier les cookies.
           }
         },
       },
@@ -26,15 +43,15 @@ export async function createClient() {
   );
 }
 
-// Client admin (service role) — usage serveur uniquement, jamais exposé au client.
-// Sert pour les tâches d'administration : import des communes, activation d'un
-// abonnement mairie/pro après paiement, etc.
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-
+// Client admin (service role) — usage serveur uniquement.
 export function createAdminClient() {
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
+    {
+      auth: {
+        persistSession: false,
+      },
+    }
   );
 }
