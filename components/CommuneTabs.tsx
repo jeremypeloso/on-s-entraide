@@ -187,6 +187,32 @@ export default function CommuneTabs({
             </div>
           </div>
 
+          {/* Accès rapides mairie (mobile et tablette) */}
+          {commune.is_certified && coordonnees && (coordonnees.telephone || coordonnees.email || coordonnees.adresse) && (
+            <div className="flex items-center gap-2 mt-4 lg:hidden">
+              <span className="text-[11px] font-bold text-sky mr-1">🏛️ Mairie</span>
+              {coordonnees.telephone && (
+                <a href={`tel:${coordonnees.telephone.replace(/\s/g, "")}`} aria-label="Appeler la mairie"
+                  className="w-10 h-10 rounded-full bg-white border border-sky/30 shadow-sm flex items-center justify-center hover:bg-sky/10 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4D8DFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" /></svg>
+                </a>
+              )}
+              {coordonnees.email && (
+                <a href={`mailto:${coordonnees.email}`} aria-label="Écrire à la mairie"
+                  className="w-10 h-10 rounded-full bg-white border border-sky/30 shadow-sm flex items-center justify-center hover:bg-sky/10 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4D8DFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 7L2 7" /></svg>
+                </a>
+              )}
+              {coordonnees.adresse && (
+                <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`Mairie, ${coordonnees.adresse}, ${commune.nom}`)}`}
+                  target="_blank" rel="noopener noreferrer" aria-label="Itinéraire vers la mairie"
+                  className="w-10 h-10 rounded-full bg-white border border-sky/30 shadow-sm flex items-center justify-center hover:bg-sky/10 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4D8DFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
+                </a>
+              )}
+            </div>
+          )}
+
           {/* Recherche */}
           <div className="relative max-w-xl mt-4">
             <svg className="absolute left-4 top-1/2 -translate-y-1/2" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.5" y2="16.5" /></svg>
@@ -384,7 +410,7 @@ export default function CommuneTabs({
 
             {/* ===== Sidebar constante ===== */}
             <aside className="space-y-4 lg:sticky lg:top-24">
-              <div className="bg-sky/5 border border-sky/20 rounded-3xl p-5">
+              <div className="hidden lg:block bg-sky/5 border border-sky/20 rounded-3xl p-5">
                 <p className="font-bold text-sm flex items-center gap-2">🏛️ Mairie de {commune.nom}{commune.is_certified && <VerifiedBadge color="#4D8DFF" title="Commune certifiée" size={15} />}</p>
                 {commune.is_certified && coordonnees ? (
                   <p className="text-xs text-neutral-500 font-body mt-1.5">{[coordonnees.telephone, coordonnees.horaires].filter(Boolean).join(" · ")}</p>
