@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import CommentForm from "@/components/CommentForm";
 import PhotoViewer from "@/components/PhotoViewer";
 import AnnonceOwnerActions from "@/components/AnnonceOwnerActions";
+import AdminBadge from "@/components/AdminBadge";
+import ReportButton from "@/components/ReportButton";
 
 const STATUT_STYLE: Record<string, string> = {
   disponible: "bg-mint/15 text-mint",
@@ -242,6 +244,8 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
                 <li>· Ne versez jamais d&apos;argent en avance</li>
               </ul>
             </div>
+
+            {user?.id !== annonce.author_id && <ReportButton annonceId={annonce.id} />}
           </aside>
         </div>
       </div>
