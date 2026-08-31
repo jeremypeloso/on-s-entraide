@@ -276,7 +276,15 @@ export async function POST(request: Request) {
           .select("*")
           .order("created_at", { ascending: false })
           .limit(50);
-        return NextResponse.json({ data });
+        const convIds = (data ?? []).map((m) => m.conversation_id).filter(Boolean);
+        let threads: Record<string, any[]> = {};
+        if (convIds.length) {
+          const { data: msgs } = await db.from("messages")
+            .select("conversation_id, sender_id, body, created_at")
+            .in("conversation_id", convIds).order("created_at");
+          for (const m of msgs ?? []) (threads[m.conversation_id] ??= []).push({ ...m, mine: m.sender_id === admin.id });
+        }
+        return NextResponse.json({ data: (data ?? []).map((m) => ({ ...m, thread: m.conversation_id ? threads[m.conversation_id] ?? [] : [] })) });
       }
       case "contact_traiter": {
         await db.from("contact_messages").update({ traite: payload.value ?? true }).eq("id", payload.id);
@@ -313,7 +321,7 @@ export async function POST(request: Request) {
         }
         await db.from("messages").insert({ conversation_id: convId, sender_id: admin.id, body });
         await db.from("conversations").update({ last_message_at: new Date().toISOString(), last_notified_at: new Date().toISOString() }).eq("id", convId);
-        await db.from("contact_messages").update({ traite: true }).eq("id", payload.id);
+        await db.from("contact_messages").update({ conversation_id: convId }).eq("id", payload.id);
 
         try {
           await sendNewMessageEmail(msg.email, "L'équipe On se dit tout", "", `https://onseditout.fr/messages/${convId}`);

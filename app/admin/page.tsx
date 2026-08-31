@@ -584,6 +584,20 @@ export default function AdminPage() {
                     </div>
                   </div>
 
+                  {m.thread?.length > 0 && (
+                    <div className="mt-4 border-t border-neutral-100 pt-4 space-y-2">
+                      <p className="text-[11px] font-bold text-neutral-400 uppercase">Conversation · <a href={`/messages/${m.conversation_id}`} className="text-sky normal-case">ouvrir dans la messagerie →</a></p>
+                      {m.thread.map((t: any, i: number) => (
+                        <div key={i} className={`flex ${t.mine ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm font-body ${t.mine ? "bg-coral text-white" : "bg-neutral-100 text-ink"}`}>
+                            <p className="whitespace-pre-line">{t.body}</p>
+                            <p className={`text-[10px] mt-1 ${t.mine ? "text-white/70" : "text-neutral-400"}`}>{t.mine ? "Vous" : m.nom ?? m.email} · {new Date(t.created_at).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {replyFor === m.id && (
                     <div className="mt-4 border-t border-neutral-100 pt-4">
                       <textarea
@@ -598,7 +612,7 @@ export default function AdminPage() {
                         <button
                           onClick={async () => {
                             const r = await api("contact_repondre", { id: m.id, body: replyBody });
-                            if (r.ok) { setReplyResult((x) => ({ ...x, [m.id]: "sent" })); setReplyFor(null); setFeedback("✓ Réponse envoyée dans la messagerie, l'utilisateur est prévenu par email"); setTimeout(() => setFeedback(null), 4000); load(tab); }
+                            if (r.ok) { setReplyResult((x) => ({ ...x, [m.id]: "sent" })); setReplyFor(null); setReplyBody(""); setFeedback("✓ Réponse envoyée dans la messagerie, l'utilisateur est prévenu par email"); setTimeout(() => setFeedback(null), 4000); load(tab); }
                             else if (r.noAccount) setReplyResult((x) => ({ ...x, [m.id]: "noAccount" }));
                             else setFeedback(`⚠️ ${r.error}`);
                           }}
