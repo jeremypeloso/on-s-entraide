@@ -18,10 +18,36 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-body",
 });
 
+const SITE_URL = "https://onseditout.fr";
+const DESCRIPTION =
+  "Annonces entre habitants, agenda des associations, pros vérifiés et informations de la mairie : tout ce qui se passe dans votre commune, au même endroit.";
+
 export const metadata: Metadata = {
-  title: "Onseditout.fr — Tout ce qui se passe dans votre commune",
-  description:
-    "Objets, services, transport, garde, alimentaire, alertes : annonces, événements, pros et mairie : tout ce qui se passe dans votre commune, au même endroit.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "On se dit tout — Tout ce qui se passe dans votre commune",
+    template: "%s · On se dit tout",
+  },
+  description: DESCRIPTION,
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: SITE_URL,
+    siteName: "On se dit tout",
+    title: "On se dit tout — Tout ce qui se passe dans votre commune",
+    description: DESCRIPTION,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "onseditout.fr" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "On se dit tout — Tout ce qui se passe dans votre commune",
+    description: DESCRIPTION,
+    images: ["/og.png"],
+  },
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
