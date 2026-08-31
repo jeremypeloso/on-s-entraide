@@ -96,7 +96,7 @@ export default function ComptePage() {
       .from("communes")
       .select("id, nom, code_postal, departement")
       .order("population", { ascending: false, nullsFirst: false })
-      .limit(5);
+      .limit(12);
     req = isPostal ? req.ilike("code_postal", `${q.trim()}%`) : req.ilike("nom", `%${q.trim()}%`);
     const { data } = await req;
     setSuggestions(data ?? []);
@@ -245,7 +245,7 @@ export default function ComptePage() {
                 <p className="text-xs text-neutral-400 font-bold mt-2 animate-pulse">Enregistrement...</p>
               )}
               {openSuggest && suggestions.length > 0 && (
-                <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden z-40">
+                <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-y-auto max-h-80 z-40">
                   {suggestions.map((s) => (
                     <button
                       key={s.id}

@@ -65,7 +65,7 @@ export default function EspaceAssociationPage() {
   const searchCommunes = useCallback(async (q: string) => {
     if (q.trim().length < 2) { setSuggestions([]); return; }
     const isPostal = /^\d{2,5}$/.test(q.trim());
-    let req = supabase.from("communes").select("id, nom, code_postal, departement").order("population", { ascending: false, nullsFirst: false }).limit(5);
+    let req = supabase.from("communes").select("id, nom, code_postal, departement").order("population", { ascending: false, nullsFirst: false }).limit(12);
     req = isPostal ? req.ilike("code_postal", `${q.trim()}%`) : req.ilike("nom", `%${q.trim()}%`);
     const { data } = await req;
     setSuggestions(data ?? []);
@@ -171,7 +171,7 @@ export default function EspaceAssociationPage() {
               <div className="relative max-w-md">
                 <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Commune de l'association..." className={input} />
                 {suggestions.length > 0 && (
-                  <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden z-40">
+                  <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-y-auto max-h-80 z-40">
                     {suggestions.map((s) => (
                       <button key={s.id} type="button" onClick={() => { setCommune(s); setQuery(""); setSuggestions([]); }}
                         className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-lilac/5 transition">

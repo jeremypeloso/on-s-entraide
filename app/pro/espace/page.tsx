@@ -124,7 +124,7 @@ export default function EspaceProPage() {
       .from("communes")
       .select("id, nom, code_postal, departement")
       .order("population", { ascending: false, nullsFirst: false })
-      .limit(5);
+      .limit(12);
     req = isPostal ? req.ilike("code_postal", `${q.trim()}%`) : req.ilike("nom", `%${q.trim()}%`);
     const { data } = await req;
     setSuggestions(data ?? []);
@@ -504,7 +504,7 @@ export default function EspaceProPage() {
                     className="w-full bg-neutral-50 border-2 border-transparent focus:border-coral/50 rounded-xl px-4 py-3 text-sm font-semibold outline-none transition font-body"
                   />
                   {suggestions.length > 0 && (
-                    <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden z-40">
+                    <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-y-auto max-h-80 z-40">
                       {suggestions.map((s) => (
                         <button
                           key={s.id}

@@ -40,7 +40,7 @@ export default function CitySearch({ compact = false }: { compact?: boolean }) {
       .from("communes")
       .select("id, nom, slug, code_postal, departement, population")
       .order("population", { ascending: false, nullsFirst: false })
-      .limit(6);
+      .limit(12);
 
     if (isPostal) {
       // Recherche par code postal (préfixe : "78" propose toutes les Yvelines)
@@ -165,7 +165,7 @@ export default function CitySearch({ compact = false }: { compact?: boolean }) {
       </div>
 
       {open && (
-        <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden z-50">
+        <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-y-auto max-h-80 z-50">
           {suggestions.length === 0 && !loading && (
             <div className="px-5 py-4 text-sm text-neutral-400 font-semibold">
               Aucune commune trouvée pour «&nbsp;{value}&nbsp;»
