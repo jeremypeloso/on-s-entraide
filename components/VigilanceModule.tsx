@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import AdminBadge from "@/components/AdminBadge";
 
 const TYPES = [
   { id: "comportement", emoji: "👀", label: "Comportement inhabituel" },
@@ -60,7 +61,7 @@ export default function VigilanceModule({
       supabase.from("vigilance_members").select("*", { count: "exact", head: true }).eq("commune_id", communeId),
       supabase
         .from("vigilance_signalements")
-        .select("*, profiles(full_name), vigilance_comments(id, body, created_at, profiles(full_name))")
+        .select("*, profiles(full_name, is_admin), vigilance_comments(id, body, created_at, profiles(full_name, is_admin))")
         .eq("commune_id", communeId)
         .order("created_at", { ascending: false })
         .limit(20),
@@ -251,7 +252,7 @@ export default function VigilanceModule({
                       <p className="text-xs text-neutral-500 font-body mt-0.5">{s.description}</p>
                     )}
                     <p className="text-[10px] font-bold text-neutral-400 mt-1.5">
-                      {s.profiles?.full_name ?? "Un résident"} · {timeAgo(s.created_at)}
+                      {s.profiles?.full_name ?? "Un résident"}{s.profiles?.is_admin && <span className="ml-1.5"><AdminBadge size="xs" /></span>} · {timeAgo(s.created_at)}
                       {resolu && <span className="text-mint ml-2">✓ Résolu</span>}
                     </p>
                   </div>
@@ -282,7 +283,7 @@ export default function VigilanceModule({
                         <div key={c.id} className="bg-neutral-50 rounded-xl px-3 py-2">
                           <p className="text-xs font-body">{c.body}</p>
                           <p className="text-[10px] font-bold text-neutral-400 mt-0.5">
-                            {c.profiles?.full_name ?? "Un résident"} · {timeAgo(c.created_at)}
+                            {c.profiles?.full_name ?? "Un résident"}{c.profiles?.is_admin && <span className="ml-1.5"><AdminBadge size="xs" /></span>} · {timeAgo(c.created_at)}
                           </p>
                         </div>
                       ))}

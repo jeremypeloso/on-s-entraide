@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import AdminBadge from "@/components/AdminBadge";
 
 type Annonce = {
   id: string;
@@ -11,7 +12,7 @@ type Annonce = {
   is_sponsored: boolean;
   created_at: string;
   categories: { id: string; label: string; emoji: string; color_hex: string | null } | null;
-  profiles: { full_name: string | null; avatar_url?: string | null } | null;
+  profiles: { full_name: string | null; avatar_url?: string | null; is_admin?: boolean } | null;
 };
 
 const PAGE_SIZE = 12;
@@ -181,6 +182,7 @@ export default function AnnoncesList({ annonces }: { annonces: Annonce[] }) {
                     <span className="text-xs font-bold text-ink/70 truncate">
                       {a.profiles?.full_name ?? "Un voisin"}
                     </span>
+                    {a.profiles?.is_admin && <AdminBadge size="xs" />}
                     <span className="text-[11px] font-bold text-neutral-300 ml-auto flex-shrink-0">
                       {timeAgo(a.created_at)}
                     </span>

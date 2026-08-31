@@ -39,7 +39,7 @@ export default async function CommunePage({
   ] = await Promise.all([
     supabase
       .from("annonces")
-      .select("*, categories(*), profiles(full_name, avatar_url)")
+      .select("*, categories(*), profiles(full_name, avatar_url, is_admin)")
       .eq("commune_id", commune.id)
       .order("created_at", { ascending: false })
       .limit(100),
