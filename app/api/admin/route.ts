@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import {
+  sendWelcomeEmail, sendNewMessageEmail, sendCommentNotificationEmail,
+  sendDailyDigestEmail, sendVigilanceAlertEmail, sendCommuneCertifiedEmail,
+} from "@/lib/resend";
 
 // Toutes les actions d'administration passent par cette route :
 // 1. On vérifie que le demandeur est connecté ET is_admin (via son propre client RLS)
@@ -50,6 +54,27 @@ export async function POST(request: Request) {
           signalements: signalements.count, contacts: contacts.count, comments: comments.count,
           avisSignales: avisSignales.count, assosAttente: assosAttente.count,
         });
+      }
+
+      // ===== TEST DES EMAILS : envoie les 6 modèles à l'admin connecté =====
+      case "test_emails": {
+        const to = admin.email!;
+        const results: Record<string, string> = {};
+        const tests: [string, () => Promise<any>][] = [
+          ["bienvenue", () => sendWelcomeEmail(to, "Limetz-Villez", "limetz-villez")],
+          ["message", () => sendNewMessageEmail(to, "Sophie Martin", "Perceuse à prêter ce week-end", "https://onseditout.fr/messages")],
+          ["question", () => sendCommentNotificationEmail(to, "Karim Benali", "Covoiturage gare de Vernon", "00000000-0000-0000-0000-000000000000", "Bonjour, est-ce que le départ est bien à 7h45 ?")],
+          ["digest", () => sendDailyDigestEmail(to, "Limetz-Villez", "limetz-villez",
+            [{ title: "Perceuse à prêter ce week-end", id: "00000000-0000-0000-0000-000000000000" }, { title: "Recherche garde pour 2 chats", id: "00000000-0000-0000-0000-000000000001" }],
+            [{ titre: "Loto du comité des fêtes", starts_at: new Date(Date.now() + 5 * 86400000).toISOString(), lieu: "Salle des fêtes" }])],
+          ["vigilance", () => sendVigilanceAlertEmail([to], "Limetz-Villez", "Camionnette blanche qui tourne lentement, rue des Vignes")],
+          ["certifiee", () => sendCommuneCertifiedEmail(to, "Limetz-Villez", "limetz-villez")],
+        ];
+        for (const [name, fn] of tests) {
+          try { const r = await fn(); results[name] = r?.error ? `❌ ${r.error.message}` : "✓ envoyé"; }
+          catch (e: any) { results[name] = `❌ ${e.message}`; }
+        }
+        return NextResponse.json({ ok: true, to, results });
       }
 
       // ===== RÉGLAGES DU SITE =====

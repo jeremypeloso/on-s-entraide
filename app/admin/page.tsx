@@ -40,6 +40,8 @@ export default function AdminPage() {
   const [agentSlug, setAgentSlug] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [maintMsg, setMaintMsg] = useState("");
+  const [emailTest, setEmailTest] = useState<any>(null);
+  const [emailTesting, setEmailTesting] = useState(false);
 
   // Contrôle d'accès
   useEffect(() => {
@@ -422,6 +424,33 @@ export default function AdminPage() {
           const m = data.data.maintenance ?? { enabled: false, message: "" };
           return (
             <div className="space-y-4 max-w-2xl">
+              {/* Test des emails */}
+              <div className="rounded-2xl border border-neutral-200 bg-white p-6">
+                <h3 className="font-bold text-lg">✉️ Tester les emails</h3>
+                <p className="text-sm text-neutral-500 font-body mt-1 mb-4">
+                  Envoie les 6 modèles (bienvenue, message, question, résumé quotidien, vigilance, commune certifiée) sur votre adresse, avec des données d&apos;exemple.
+                </p>
+                <button
+                  onClick={async () => { setEmailTesting(true); setEmailTest(null); const r = await api("test_emails"); setEmailTest(r); setEmailTesting(false); }}
+                  disabled={emailTesting}
+                  className="text-sm font-bold px-5 py-2.5 rounded-full bg-ink text-white hover:bg-ink/85 transition disabled:opacity-50"
+                >
+                  {emailTesting ? "Envoi en cours..." : "Envoyer les 6 emails de test"}
+                </button>
+                {emailTest && (
+                  <div className="mt-4 text-sm font-body space-y-1">
+                    {emailTest.error ? <p className="text-red-600 font-bold">{emailTest.error}</p> : (
+                      <>
+                        <p className="text-xs font-bold text-neutral-400 mb-2">Envoyés à {emailTest.to}</p>
+                        {Object.entries(emailTest.results ?? {}).map(([k, v]: any) => (
+                          <p key={k} className={v.startsWith("✓") ? "text-mint" : "text-red-600"}><span className="font-bold capitalize">{k}</span> · {v}</p>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className={`rounded-2xl border p-6 ${m.enabled ? "bg-red-50 border-red-200" : "bg-white border-neutral-200"}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
