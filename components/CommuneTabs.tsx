@@ -87,7 +87,7 @@ export default function CommuneTabs({
   ];
 
   const ProRow = ({ p, sponsored }: { p: any; sponsored: boolean }) => (
-    <a href={`/pro/${p.id}`} className={`flex items-center gap-3 rounded-2xl px-4 py-3 border transition hover:shadow-md ${
+    <a href={`/pro/${p.id}`} className={`flex items-center gap-3 rounded-2xl px-4 py-3 border transition hover:shadow-md min-w-0 ${
       sponsored ? "bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300" : "bg-white border-neutral-100 hover:border-neutral-200"}`}>
       {p.logo_url ? (
         /* eslint-disable-next-line @next/next/no-img-element */
@@ -99,9 +99,9 @@ export default function CommuneTabs({
       )}
       <div className="min-w-0 flex-1">
         <p className="font-bold text-sm flex items-center gap-1.5 min-w-0"><span className="truncate">{p.business_name}</span>{p.siret_verified && <VerifiedBadge />}</p>
-        <p className="text-xs text-neutral-500 truncate flex items-center gap-1.5">
+        <p className="text-xs text-neutral-500 flex items-center gap-1.5 min-w-0">
           {p.rating_count > 0 && <span className="text-sun font-bold flex-shrink-0">★ {p.rating_avg.toFixed(1)} <span className="text-neutral-400 font-semibold">({p.rating_count})</span></span>}
-          {p.tagline && <span className="truncate">{p.tagline}</span>}
+          {p.tagline && <span className="truncate min-w-0">{p.tagline}</span>}
         </p>
       </div>
       {sponsored && <span className="text-[9px] font-bold text-amber-700 bg-amber-100 rounded-full px-2 py-0.5 flex-shrink-0">Mis en avant</span>}
@@ -259,9 +259,9 @@ export default function CommuneTabs({
               <button onClick={() => setQuery("")} className="ml-3 text-coral">Effacer</button>
             </p>
             {results.annonces.length > 0 && <div><h3 className="font-bold mb-3">📋 Annonces</h3><AnnoncesList annonces={results.annonces} /></div>}
-            {results.pros.length > 0 && <div><h3 className="font-bold mb-3">💼 Pros</h3><div className="grid sm:grid-cols-2 gap-3">{results.pros.map((p) => <ProRow key={p.id} p={p} sponsored={p.subscription_plan !== "essentiel"} />)}</div></div>}
+            {results.pros.length > 0 && <div><h3 className="font-bold mb-3">💼 Pros</h3><div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">{results.pros.map((p) => <ProRow key={p.id} p={p} sponsored={p.subscription_plan !== "essentiel"} />)}</div></div>}
             {results.evenements.length > 0 && <div><h3 className="font-bold mb-3">📅 Événements</h3><div className="space-y-3">{results.evenements.map((e) => <EventCard key={e.id} e={e} />)}</div></div>}
-            {results.associations.length > 0 && <div><h3 className="font-bold mb-3">🎭 Associations</h3><div className="grid sm:grid-cols-2 gap-3">{results.associations.map((a) => <AssoCard key={a.id} a={a} />)}</div></div>}
+            {results.associations.length > 0 && <div><h3 className="font-bold mb-3">🎭 Associations</h3><div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">{results.associations.map((a) => <AssoCard key={a.id} a={a} />)}</div></div>}
             {results.alertes.length > 0 && <div><h3 className="font-bold mb-3">🏛️ Informations mairie</h3><div className="space-y-3">{results.alertes.map((a) => <div key={a.id} className="bg-sky/5 border border-sky/20 rounded-3xl p-5"><h4 className="font-bold">{a.title}</h4>{a.body && <p className="text-[13px] text-neutral-600 font-body mt-1">{a.body}</p>}</div>)}</div></div>}
             {results.annonces.length + results.pros.length + results.evenements.length + results.alertes.length + results.associations.length === 0 && (
               <p className="text-center text-sm font-bold text-neutral-300 py-10">Rien trouvé à {commune.nom} pour cette recherche.</p>
@@ -309,7 +309,7 @@ export default function CommuneTabs({
                     <div className="mt-8 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5">
                       <h4 className="font-bold mb-1">🛠️ Les pros près de chez vous</h4>
                       <p className="text-[11px] font-bold text-amber-700/60 mb-3">Professionnels vérifiés · Sponsorisé</p>
-                      <div className="grid sm:grid-cols-2 gap-2">{prosEssentiel.map((p: any) => <ProRow key={p.id} p={p} sponsored={false} />)}</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0">{prosEssentiel.map((p: any) => <ProRow key={p.id} p={p} sponsored={false} />)}</div>
                     </div>
                   )}
                 </>
@@ -336,7 +336,7 @@ export default function CommuneTabs({
                       <a href="/pro" className="inline-block mt-3 text-sm font-bold text-coral">Vous êtes un pro du secteur ? →</a>
                     </div>
                   ) : (
-                    <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
                       {prosPremium.map((p) => <ProRow key={p.id} p={p} sponsored />)}
                       {prosVisibilite.map((p) => <ProRow key={p.id} p={p} sponsored />)}
                       {prosEssentiel.map((p) => <ProRow key={p.id} p={p} sponsored={false} />)}
@@ -357,7 +357,7 @@ export default function CommuneTabs({
                     </div>
                   ) : (
                     <>
-                      <div className="grid sm:grid-cols-2 gap-3">{associations.map((a) => <AssoCard key={a.id} a={a} />)}</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">{associations.map((a) => <AssoCard key={a.id} a={a} />)}</div>
                       <p className="text-center mt-5"><a href="/association/espace" className="text-sm font-bold text-lilac">Votre association n&apos;y est pas ? Créez sa page gratuitement →</a></p>
                     </>
                   )}
@@ -417,7 +417,7 @@ export default function CommuneTabs({
                 {alertes.length > 0 && <button onClick={() => setTab("mairie")} className="text-[11px] font-bold text-sky mt-2">{alertes.length} information{alertes.length > 1 ? "s" : ""} en cours →</button>}
               </div>
 
-              {prochain && (
+              {prochain && tab === "fil" && (
                 <button onClick={() => setTab("agenda")} className="w-full text-left bg-lilac/5 border border-lilac/20 rounded-3xl p-5 hover:border-lilac/40 transition">
                   <p className="text-[11px] font-bold text-lilac mb-1.5">📅 Prochain événement</p>
                   <p className="font-bold text-sm">{prochain.titre}</p>
@@ -425,7 +425,7 @@ export default function CommuneTabs({
                 </button>
               )}
 
-              {prosVisibilite.length > 0 && (
+              {prosVisibilite.length > 0 && tab === "fil" && (
                 <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-3xl p-5">
                   <p className="font-bold text-sm mb-3">🔨 Pros du quartier <span className="text-[9px] text-amber-700/60">Sponsorisé</span></p>
                   <div className="space-y-2.5">
