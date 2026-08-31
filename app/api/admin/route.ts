@@ -4,6 +4,7 @@ import {
   sendWelcomeEmail, sendNewMessageEmail, sendCommentNotificationEmail,
   sendDailyDigestEmail, sendVigilanceAlertEmail, sendCommuneCertifiedEmail,
 } from "@/lib/resend";
+import { getStripe, PRICES, COUPONS } from "@/lib/stripe";
 
 // Toutes les actions d'administration passent par cette route :
 // 1. On vérifie que le demandeur est connecté ET is_admin (via son propre client RLS)
@@ -75,6 +76,53 @@ export async function POST(request: Request) {
           catch (e: any) { results[name] = `❌ ${e.message}`; }
         }
         return NextResponse.json({ ok: true, to, results });
+      }
+
+      // ===== DIAGNOSTIC STRIPE =====
+      case "stripe_check": {
+        const out: any = { key: null, mode: null, prices: [], coupons: [], webhooks: [], events: [], errors: [] };
+        try {
+          const stripe = getStripe();
+          const key = process.env.STRIPE_SECRET_KEY ?? "";
+          out.mode = key.startsWith("sk_live_") ? "live" : key.startsWith("sk_test_") ? "test" : "inconnu";
+          const account = await stripe.accounts.retrieve();
+          out.key = { ok: true, account: account.business_profile?.name ?? account.id, chargesEnabled: account.charges_enabled, payoutsEnabled: account.payouts_enabled };
+
+          const expected: Record<string, { id: string; amount: number; interval: string }> = {
+            "Pro Essentiel": { id: PRICES.pro.essentiel, amount: 1900, interval: "month" },
+            "Pro Visibilité": { id: PRICES.pro.visibilite, amount: 3900, interval: "month" },
+            "Pro Premium": { id: PRICES.pro.premium, amount: 7900, interval: "month" },
+            "Mairie Village": { id: PRICES.mairie.village, amount: 46800, interval: "year" },
+            "Mairie Bourg": { id: PRICES.mairie.bourg, amount: 118800, interval: "year" },
+            "Mairie Ville": { id: PRICES.mairie.ville, amount: 238800, interval: "year" },
+          };
+          for (const [label, e] of Object.entries(expected)) {
+            if (!e.id) { out.prices.push({ label, ok: false, info: "variable manquante" }); continue; }
+            try {
+              const p = await stripe.prices.retrieve(e.id);
+              const amountOk = p.unit_amount === e.amount && p.recurring?.interval === e.interval;
+              out.prices.push({ label, ok: p.active && amountOk, info: `${(p.unit_amount ?? 0) / 100} € / ${p.recurring?.interval}${p.active ? "" : " (inactif)"}${amountOk ? "" : " ⚠️ montant ou période inattendus"}` });
+            } catch (err: any) { out.prices.push({ label, ok: false, info: err.message }); }
+          }
+          for (const [label, id] of [["Lancement Pro", COUPONS.proVisibilite], ["Lancement Mairie", COUPONS.mairieBourg]] as const) {
+            if (!id) { out.coupons.push({ label, ok: true, info: "non configuré (plein tarif)" }); continue; }
+            try {
+              const c = await stripe.coupons.retrieve(id);
+              out.coupons.push({ label, ok: c.valid, info: `${c.percent_off ?? c.amount_off}% · ${c.duration}${c.duration_in_months ? ` ${c.duration_in_months} mois` : ""}` });
+            } catch (err: any) { out.coupons.push({ label, ok: false, info: err.message }); }
+          }
+          const wh = await stripe.webhookEndpoints.list({ limit: 10 });
+          for (const w of wh.data) {
+            out.webhooks.push({ url: w.url, ok: w.status === "enabled" && w.url.includes("onseditout.fr/api/stripe/webhook"), status: w.status, events: w.enabled_events.length });
+          }
+          if (!process.env.STRIPE_WEBHOOK_SECRET) out.errors.push("STRIPE_WEBHOOK_SECRET manquante");
+          const ev = await stripe.events.list({ limit: 8 });
+          out.events = ev.data.map((e) => ({ type: e.type, created: new Date(e.created * 1000).toISOString(), delivered: e.pending_webhooks === 0 }));
+        } catch (e: any) {
+          out.errors.push(e.message);
+          out.key = { ok: false };
+        }
+        return NextResponse.json(out);
       }
 
       // ===== RÉGLAGES DU SITE =====

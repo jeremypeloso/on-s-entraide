@@ -41,6 +41,8 @@ export default function AdminPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [maintMsg, setMaintMsg] = useState("");
   const [emailTest, setEmailTest] = useState<any>(null);
+  const [stripeCheck, setStripeCheck] = useState<any>(null);
+  const [stripeChecking, setStripeChecking] = useState(false);
   const [emailTesting, setEmailTesting] = useState(false);
 
   // Contrôle d'accès
@@ -424,6 +426,43 @@ export default function AdminPage() {
           const m = data.data.maintenance ?? { enabled: false, message: "" };
           return (
             <div className="space-y-4 max-w-2xl">
+              {/* Diagnostic Stripe */}
+              <div className="rounded-2xl border border-neutral-200 bg-white p-6">
+                <h3 className="font-bold text-lg">💳 Vérifier Stripe</h3>
+                <p className="text-sm text-neutral-500 font-body mt-1 mb-4">
+                  Contrôle la clé, le mode (test/live), les 6 tarifs, les coupons, le webhook et les derniers événements reçus.
+                </p>
+                <button
+                  onClick={async () => { setStripeChecking(true); setStripeCheck(null); const r = await api("stripe_check"); setStripeCheck(r); setStripeChecking(false); }}
+                  disabled={stripeChecking}
+                  className="text-sm font-bold px-5 py-2.5 rounded-full bg-[#635BFF] text-white hover:opacity-90 transition disabled:opacity-50"
+                >
+                  {stripeChecking ? "Vérification..." : "Lancer le diagnostic Stripe"}
+                </button>
+                {stripeCheck && (
+                  <div className="mt-4 text-sm font-body space-y-3">
+                    {stripeCheck.errors?.map((e: string, i: number) => <p key={i} className="text-red-600 font-bold">❌ {e}</p>)}
+                    {stripeCheck.key && (
+                      <p className={stripeCheck.key.ok ? "text-mint font-bold" : "text-red-600 font-bold"}>
+                        {stripeCheck.key.ok ? `✓ Clé valide · mode ${stripeCheck.mode?.toUpperCase()} · compte ${stripeCheck.key.account}` : "❌ Clé invalide"}
+                        {stripeCheck.key.ok && (stripeCheck.key.chargesEnabled ? " · paiements activés" : " · ⚠️ paiements non activés (compte à activer)")}
+                      </p>
+                    )}
+                    {stripeCheck.mode === "test" && <p className="text-amber-700 font-bold bg-amber-50 rounded-xl px-3 py-2">⚠️ Mode TEST : aucun paiement réel ne sera encaissé.</p>}
+                    <div><p className="text-xs font-bold text-neutral-400 uppercase mb-1">Tarifs</p>
+                      {stripeCheck.prices?.map((p: any) => <p key={p.label} className={p.ok ? "text-mint" : "text-red-600"}>{p.ok ? "✓" : "❌"} <span className="font-bold">{p.label}</span> · {p.info}</p>)}</div>
+                    <div><p className="text-xs font-bold text-neutral-400 uppercase mb-1">Coupons</p>
+                      {stripeCheck.coupons?.map((p: any) => <p key={p.label} className={p.ok ? "text-mint" : "text-red-600"}>{p.ok ? "✓" : "❌"} <span className="font-bold">{p.label}</span> · {p.info}</p>)}</div>
+                    <div><p className="text-xs font-bold text-neutral-400 uppercase mb-1">Webhooks</p>
+                      {stripeCheck.webhooks?.length === 0 && <p className="text-red-600">❌ Aucun webhook enregistré dans ce mode</p>}
+                      {stripeCheck.webhooks?.map((w: any, i: number) => <p key={i} className={w.ok ? "text-mint" : "text-red-600"}>{w.ok ? "✓" : "❌"} {w.url} · {w.status} · {w.events} événements</p>)}</div>
+                    <div><p className="text-xs font-bold text-neutral-400 uppercase mb-1">Derniers événements</p>
+                      {stripeCheck.events?.length === 0 && <p className="text-neutral-400">Aucun événement pour le moment.</p>}
+                      {stripeCheck.events?.map((e: any, i: number) => <p key={i} className="text-neutral-600">{e.delivered ? "✓" : "⏳"} {e.type} <span className="text-neutral-400">· {new Date(e.created).toLocaleString("fr-FR")}</span></p>)}</div>
+                  </div>
+                )}
+              </div>
+
               {/* Test des emails */}
               <div className="rounded-2xl border border-neutral-200 bg-white p-6">
                 <h3 className="font-bold text-lg">✉️ Tester les emails</h3>
