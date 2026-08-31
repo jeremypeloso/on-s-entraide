@@ -96,18 +96,3 @@ export async function sendCommuneCertifiedEmail(to: string, communeName: string)
     `,
   });
 }
-
-export async function sendNewMessageEmail(to: string, fromName: string, annonceTitle: string, conversationId: string) {
-  return getResend().emails.send({
-    from: FROM,
-    to,
-    subject: `${fromName} vous a écrit${annonceTitle ? ` à propos de « ${annonceTitle} »` : ""}`,
-    html: `
-      <div style="font-family:sans-serif; max-width:480px; margin:0 auto;">
-        <p style="color:#22223B;"><strong>${fromName}</strong> vous a envoyé un message sur On se dit tout${annonceTitle ? ` au sujet de votre annonce <em>${annonceTitle}</em>` : ""}.</p>
-        <p><a href="https://onseditout.fr/messages/${conversationId}" style="display:inline-block;background:#FF6B5B;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold;">Lire et répondre</a></p>
-        <p style="font-size:12px;color:#888;">Vous recevez au plus un email par conversation toutes les 30 minutes.</p>
-      </div>
-    `,
-  });
-}

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       const { data: senderProfile } = await db.from("profiles").select("full_name").eq("id", user.id).single();
       if (rec?.user?.email) {
         // @ts-expect-error jointure typée souplement
-        await sendNewMessageEmail(rec.user.email, senderProfile?.full_name ?? "Un habitant", conv.annonces?.title ?? "", conversationId);
+        await sendNewMessageEmail(rec.user.email, senderProfile?.full_name ?? "Un habitant", conv.annonces?.title ?? "", `https://onseditout.fr/messages/${conversationId}`);
         await db.from("conversations").update({ last_notified_at: new Date().toISOString() }).eq("id", conversationId);
       }
     } catch (e) { console.error("Email message:", e); }
