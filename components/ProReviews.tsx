@@ -6,7 +6,7 @@ import AdminBadge from "@/components/AdminBadge";
 
 type Review = {
   id: string; author_id: string; rating: number; body: string | null; created_at: string;
-  pro_reply: string | null; replied_at: string | null; profiles: { full_name: string | null; is_admin?: boolean } | null;
+  pro_reply: string | null; replied_at: string | null; profiles: { full_name: string | null; is_admin?: boolean; staff_role?: string | null } | null;
 };
 
 const MOTIFS_AVIS = [
@@ -85,12 +85,14 @@ export default function ProReviews({ proId, proName }: { proId: string; proName:
     const ids = Array.from(new Set((data ?? []).map((r: any) => r.author_id)));
     let names: Record<string, string | null> = {};
     let admins = new Set<string>();
+    let roles: Record<string, string | null> = {};
     if (ids.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name, is_admin").in("id", ids);
+      const { data: profs } = await supabase.from("profiles").select("id, full_name, is_admin, staff_role").in("id", ids);
       names = Object.fromEntries((profs ?? []).map((p) => [p.id, p.full_name]));
       admins = new Set((profs ?? []).filter((p) => p.is_admin).map((p) => p.id));
+      roles = Object.fromEntries((profs ?? []).map((p) => [p.id, p.staff_role]));
     }
-    setReviews((data ?? []).map((r: any) => ({ ...r, profiles: { full_name: names[r.author_id] ?? null, is_admin: admins.has(r.author_id) } })));
+    setReviews((data ?? []).map((r: any) => ({ ...r, profiles: { full_name: names[r.author_id] ?? null, is_admin: admins.has(r.author_id), staff_role: roles[r.author_id] ?? null } })));
     if (user && user.id === proId) {
       const { data: sig } = await supabase.from("review_signalements").select("review_id").eq("pro_id", user.id);
       setReported(new Set((sig ?? []).map((s) => s.review_id)));
@@ -213,7 +215,7 @@ export default function ProReviews({ proId, proName }: { proId: string; proName:
                 {(r.profiles?.full_name ?? "?").charAt(0).toUpperCase()}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold truncate flex items-center gap-1.5">{r.profiles?.full_name ?? "Un habitant"}{r.profiles?.is_admin && <AdminBadge size="xs" />}</p>
+                <p className="text-sm font-bold truncate flex items-center gap-1.5">{r.profiles?.full_name ?? "Un habitant"}{r.profiles?.is_admin && <AdminBadge role={r.profiles?.staff_role} size={14} />}</p>
                 <p className="text-[11px] font-bold text-neutral-400 flex items-center gap-2"><Stars value={r.rating} size={12} /> {timeAgo(r.created_at)}</p>
               </div>
             </div>

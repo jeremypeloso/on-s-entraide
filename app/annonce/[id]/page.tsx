@@ -23,7 +23,7 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
 
   const { data: annonce } = await supabase
     .from("annonces")
-    .select("*, categories(*), profiles(full_name, created_at, commune_residence_id, avatar_url, is_admin), communes(nom, slug, code_postal, departement)")
+    .select("*, categories(*), profiles(full_name, created_at, commune_residence_id, avatar_url, is_admin, staff_role), communes(nom, slug, code_postal, departement)")
     .eq("id", id)
     .single();
 
@@ -31,7 +31,7 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
 
   const { data: comments } = await supabase
     .from("annonce_comments")
-    .select("*, profiles(full_name, avatar_url, is_admin)")
+    .select("*, profiles(full_name, avatar_url, is_admin, staff_role)")
     .eq("annonce_id", id)
     .order("created_at", { ascending: true });
 
@@ -141,7 +141,7 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
                       )}
                       <div className="bg-neutral-50 rounded-2xl px-4 py-3 flex-1">
                         <p className="text-xs font-bold mb-0.5">
-                          {c.profiles?.full_name ?? "Un voisin"}{c.profiles?.is_admin && <span className="ml-1.5"><AdminBadge size="xs" /></span>}
+                          {c.profiles?.full_name ?? "Un voisin"}{c.profiles?.is_admin && <span className="ml-1.5 inline-flex align-middle"><AdminBadge role={c.profiles?.staff_role} size={14} /></span>}
                           <span className="text-neutral-300 font-semibold ml-2">
                             {new Date(c.created_at).toLocaleDateString("fr-FR")}
                           </span>
@@ -192,7 +192,7 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
                   </div>
                 )}
                 <div className="min-w-0">
-                  <p className="font-bold truncate flex items-center gap-2">{author?.full_name ?? "Un voisin"}{author?.is_admin && <AdminBadge />}</p>
+                  <p className="font-bold truncate flex items-center gap-2">{author?.full_name ?? "Un voisin"}{author?.is_admin && <AdminBadge role={author?.staff_role} size={18} />}</p>
                   {isOfficial ? (
                     <p className="text-xs font-bold text-sky">🏛️ Compte officiel · {commune?.nom}</p>
                   ) : isAuthorResident ? (
