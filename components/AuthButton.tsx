@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type Cached = { logged: boolean; initial: string };
+type Cached = { logged: boolean; initial: string; avatar?: string | null };
 
 function readCache(): Cached | null {
   if (typeof window === "undefined") return null;
@@ -26,13 +26,19 @@ export default function AuthButton() {
 
     const supabase = createClient();
 
-    function apply(user: any) {
+    async function apply(user: any) {
+      let avatar: string | null = null;
+      if (user) {
+        const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single();
+        avatar = p?.avatar_url ?? null;
+      }
       const next: Cached = user
         ? {
             logged: true,
             initial: ((user.user_metadata?.full_name as string) || user.email || "?")
               .charAt(0)
               .toUpperCase(),
+            avatar,
           }
         : { logged: false, initial: "" };
       setState(next);
@@ -70,9 +76,14 @@ export default function AuthButton() {
       className="inline-flex items-center gap-2 text-sm font-bold pl-2 pr-2 sm:pr-4 py-1.5 rounded-full hover:bg-neutral-100 transition"
       aria-label="Mon compte"
     >
-      <span className="w-8 h-8 rounded-full bg-gradient-to-br from-coral via-pink to-lilac text-white flex items-center justify-center text-sm font-extrabold">
-        {state.initial}
-      </span>
+      {state.avatar ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={state.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+      ) : (
+        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-coral via-pink to-lilac text-white flex items-center justify-center text-sm font-extrabold">
+          {state.initial}
+        </span>
+      )}
       <span className="hidden sm:inline">Mon compte</span>
     </a>
   );

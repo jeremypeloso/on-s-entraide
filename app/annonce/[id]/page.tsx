@@ -29,7 +29,7 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
 
   const { data: comments } = await supabase
     .from("annonce_comments")
-    .select("*, profiles(full_name)")
+    .select("*, profiles(full_name, avatar_url)")
     .eq("annonce_id", id)
     .order("created_at", { ascending: true });
 
@@ -129,9 +129,14 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
                 <div className="space-y-4 mb-6">
                   {comments.map((c: any) => (
                     <div key={c.id} className="flex gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sky to-lilac text-white text-sm font-extrabold flex items-center justify-center flex-shrink-0">
-                        {(c.profiles?.full_name ?? "?").charAt(0).toUpperCase()}
-                      </div>
+                      {c.profiles?.avatar_url ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={c.profiles.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sky to-lilac text-white text-sm font-extrabold flex items-center justify-center flex-shrink-0">
+                          {(c.profiles?.full_name ?? "?").charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div className="bg-neutral-50 rounded-2xl px-4 py-3 flex-1">
                         <p className="text-xs font-bold mb-0.5">
                           {c.profiles?.full_name ?? "Un voisin"}
@@ -177,7 +182,7 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
                   <img
                     src={author.avatar_url}
                     alt=""
-                    className="w-14 h-14 rounded-2xl object-contain bg-white border border-neutral-100 p-1"
+                    className={isOfficial ? "w-14 h-14 rounded-2xl object-contain bg-white border border-neutral-100 p-1" : "w-14 h-14 rounded-2xl object-cover border border-neutral-100"}
                   />
                 ) : (
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-coral via-pink to-lilac text-white text-xl font-extrabold flex items-center justify-center">

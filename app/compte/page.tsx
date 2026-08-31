@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { uploadPhoto } from "@/lib/upload";
 
 type Commune = { id: string; nom: string; code_postal: string | null; departement: string | null };
 type Annonce = { id: string; title: string; statut: string; created_at: string; categories: { label: string; emoji: string } | null };
@@ -15,6 +16,8 @@ export default function ComptePage() {
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [fullName, setFullName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [residence, setResidence] = useState<Commune | null>(null);
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
   const [isAgent, setIsAgent] = useState(false);
@@ -40,12 +43,13 @@ export default function ComptePage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, commune_residence_id, communes:commune_residence_id (id, nom, code_postal, departement)")
+        .select("full_name, avatar_url, commune_residence_id, communes:commune_residence_id (id, nom, code_postal, departement)")
         .eq("id", user.id)
         .single();
 
       if (profile) {
         setFullName(profile.full_name ?? "");
+        setAvatarUrl(profile.avatar_url ?? null);
         // @ts-expect-error jointure typée souplement
         if (profile.communes) setResidence(profile.communes);
       }
@@ -125,6 +129,19 @@ export default function ComptePage() {
     }
   }
 
+  async function onAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) return;
+    setUploadingAvatar(true);
+    const url = await uploadPhoto(file, "avatars");
+    if (url) {
+      await supabase.from("profiles").update({ avatar_url: url }).eq("id", userId);
+      setAvatarUrl(url);
+      try { sessionStorage.removeItem("ose_auth"); } catch {}
+    }
+    setUploadingAvatar(false);
+  }
+
   async function supprimerAnnonce(id: string) {
     if (!window.confirm("Supprimer définitivement cette annonce ?")) return;
     const { error } = await supabase.from("annonces").delete().eq("id", id);
@@ -168,9 +185,20 @@ export default function ComptePage() {
       <div className="max-w-4xl mx-auto px-6 space-y-6">
         {/* ===== En-tête compte ===== */}
         <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-8 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-coral via-pink to-lilac flex items-center justify-center text-white text-2xl font-extrabold flex-shrink-0">
-            {(fullName || userEmail).charAt(0).toUpperCase()}
-          </div>
+          <label className="relative cursor-pointer group flex-shrink-0" title="Changer ma photo">
+            {avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={avatarUrl} alt="" className="w-16 h-16 rounded-2xl object-cover border border-neutral-100" />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-coral via-pink to-lilac flex items-center justify-center text-white text-2xl font-extrabold">
+                {(fullName || userEmail).charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-white shadow border border-neutral-200 flex items-center justify-center text-xs group-hover:scale-110 transition">
+              {uploadingAvatar ? "…" : "📷"}
+            </span>
+            <input type="file" accept="image/*" onChange={onAvatarChange} className="hidden" />
+          </label>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold truncate">{fullName || "Votre compte"}</h1>
             <p className="text-sm text-neutral-400 font-body font-semibold">{userEmail}</p>

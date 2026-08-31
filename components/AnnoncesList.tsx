@@ -11,7 +11,7 @@ type Annonce = {
   is_sponsored: boolean;
   created_at: string;
   categories: { id: string; label: string; emoji: string; color_hex: string | null } | null;
-  profiles: { full_name: string | null } | null;
+  profiles: { full_name: string | null; avatar_url?: string | null } | null;
 };
 
 const PAGE_SIZE = 12;
@@ -170,9 +170,14 @@ export default function AnnoncesList({ annonces }: { annonces: Annonce[] }) {
 
                   {/* Pied de carte */}
                   <div className="flex items-center gap-2.5 mt-auto pt-4">
-                    <span className="w-7 h-7 rounded-full bg-gradient-to-br from-coral via-pink to-lilac text-white text-[11px] font-extrabold flex items-center justify-center flex-shrink-0">
-                      {(a.profiles?.full_name ?? "?").charAt(0).toUpperCase()}
-                    </span>
+                    {a.profiles?.avatar_url ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={a.profiles.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <span className="w-7 h-7 rounded-full bg-gradient-to-br from-coral via-pink to-lilac text-white text-[11px] font-extrabold flex items-center justify-center flex-shrink-0">
+                        {(a.profiles?.full_name ?? "?").charAt(0).toUpperCase()}
+                      </span>
+                    )}
                     <span className="text-xs font-bold text-ink/70 truncate">
                       {a.profiles?.full_name ?? "Un voisin"}
                     </span>
