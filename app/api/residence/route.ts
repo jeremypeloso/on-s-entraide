@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
   const { data: commune } = await supabase
     .from("communes")
-    .select("nom")
+    .select("nom, slug")
     .eq("id", communeId)
     .single();
 
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   // Email de bienvenue : jamais bloquant (domaine Resend non vérifié, quota, etc.)
   if (user.email) {
     try {
-      await sendWelcomeEmail(user.email, commune.nom);
+      await sendWelcomeEmail(user.email, commune.nom, commune.slug);
     } catch (e) {
       console.error("Email bienvenue non envoyé :", e);
     }
