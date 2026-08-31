@@ -24,6 +24,7 @@ export default function ComptePage() {
   const [isAgent, setIsAgent] = useState(false);
   const [isPro, setIsPro] = useState(false);
   const [isAsso, setIsAsso] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // --- Recherche commune de résidence ---
   const [query, setQuery] = useState("");
@@ -44,13 +45,14 @@ export default function ComptePage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, commune_residence_id, communes:commune_residence_id (id, nom, code_postal, departement)")
+        .select("full_name, avatar_url, is_admin, commune_residence_id, communes:commune_residence_id (id, nom, code_postal, departement)")
         .eq("id", user.id)
         .single();
 
       if (profile) {
         setFullName(profile.full_name ?? "");
         setAvatarUrl(profile.avatar_url ?? null);
+        setIsAdmin(!!profile.is_admin);
         // @ts-expect-error jointure typée souplement
         if (profile.communes) setResidence(profile.communes);
       }
@@ -204,6 +206,14 @@ export default function ComptePage() {
             <h1 className="text-2xl font-bold truncate">{fullName || "Votre compte"}</h1>
             <p className="text-sm text-neutral-400 font-body font-semibold">{userEmail}</p>
           </div>
+          {isAdmin && (
+            <a
+              href="/admin"
+              className="text-sm font-bold px-5 py-2.5 rounded-full bg-ink text-white hover:bg-ink/85 transition flex items-center gap-2"
+            >
+              🎛️ Administration
+            </a>
+          )}
           <button
             onClick={logout}
             className="text-sm font-bold px-5 py-2.5 rounded-full border-2 border-neutral-200 text-neutral-500 hover:border-red-300 hover:text-red-500 transition"
