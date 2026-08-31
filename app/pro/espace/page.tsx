@@ -609,4 +609,3 @@ export default function EspaceProPage() {
     </main>
   );
 }
-git add -A && git commit -m "Changement de plan: montee immediate, descente a l'echeance" && git push
