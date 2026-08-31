@@ -34,6 +34,11 @@ export default function CommentForm({ annonceId }: { annonceId: string }) {
       setError("Impossible d'envoyer la question. Réessayez.");
       return;
     }
+    // Notification email de l'auteur de l'annonce (en tâche de fond)
+    fetch("/api/notify/comment", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ annonceId, body: body.trim() }),
+    }).catch(() => {});
     setBody("");
     router.refresh();
   }

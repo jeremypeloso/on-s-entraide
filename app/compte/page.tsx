@@ -25,6 +25,8 @@ export default function ComptePage() {
   const [isPro, setIsPro] = useState(false);
   const [isAsso, setIsAsso] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [notifQuestions, setNotifQuestions] = useState(true);
+  const [notifDigest, setNotifDigest] = useState(true);
 
   // --- Recherche commune de résidence ---
   const [query, setQuery] = useState("");
@@ -45,7 +47,7 @@ export default function ComptePage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, is_admin, commune_residence_id, communes:commune_residence_id (id, nom, code_postal, departement)")
+        .select("full_name, avatar_url, is_admin, notif_questions, notif_digest, commune_residence_id, communes:commune_residence_id (id, nom, code_postal, departement)")
         .eq("id", user.id)
         .single();
 
@@ -53,6 +55,8 @@ export default function ComptePage() {
         setFullName(profile.full_name ?? "");
         setAvatarUrl(profile.avatar_url ?? null);
         setIsAdmin(!!profile.is_admin);
+        setNotifQuestions(profile.notif_questions !== false);
+        setNotifDigest(profile.notif_digest !== false);
         // @ts-expect-error jointure typée souplement
         if (profile.communes) setResidence(profile.communes);
       }
@@ -130,6 +134,11 @@ export default function ComptePage() {
       const j = await res.json().catch(() => ({}));
       window.alert("Enregistrement impossible : " + (j.error ?? res.status));
     }
+  }
+
+  async function toggleNotif(key: "notif_questions" | "notif_digest", value: boolean) {
+    if (key === "notif_questions") setNotifQuestions(value); else setNotifDigest(value);
+    await supabase.from("profiles").update({ [key]: value }).eq("id", userId);
   }
 
   async function onAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -419,6 +428,29 @@ export default function ComptePage() {
             </p>
           </a>
           )}
+        </div>
+
+        {/* ===== Notifications ===== */}
+        <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-8">
+          <h2 className="font-bold text-lg mb-1">🔔 Mes notifications par email</h2>
+          <p className="text-sm text-neutral-500 font-body mb-5">Les messages privés vous sont toujours notifiés (au plus un email par conversation toutes les 30 minutes).</p>
+          <div className="space-y-3">
+            {[
+              { key: "notif_questions" as const, value: notifQuestions, label: "Questions publiques sur mes annonces", desc: "Un email dès qu'un voisin pose une question sous une de vos annonces." },
+              { key: "notif_digest" as const, value: notifDigest, label: "Quoi de neuf dans ma commune", desc: "Un résumé en fin de journée, uniquement s'il y a de nouvelles annonces ou de nouveaux événements." },
+            ].map((n) => (
+              <label key={n.key} className="flex items-start justify-between gap-4 border border-neutral-100 rounded-2xl px-5 py-4 cursor-pointer hover:border-neutral-200 transition">
+                <span>
+                  <span className="block font-bold text-sm">{n.label}</span>
+                  <span className="block text-xs text-neutral-500 font-body mt-0.5">{n.desc}</span>
+                </span>
+                <span onClick={(e) => { e.preventDefault(); toggleNotif(n.key, !n.value); }}
+                  className={`relative w-11 h-6 rounded-full flex-shrink-0 transition ${n.value ? "bg-mint" : "bg-neutral-200"}`}>
+                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition ${n.value ? "left-[22px]" : "left-0.5"}`} />
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
 
         <DangerZone

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Baloo_2, Plus_Jakarta_Sans } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -21,6 +21,12 @@ const jakarta = Plus_Jakarta_Sans({
 const SITE_URL = "https://onseditout.fr";
 const DESCRIPTION =
   "Annonces entre habitants, agenda des associations, pros vérifiés et informations de la mairie : tout ce qui se passe dans votre commune, au même endroit.";
+
+export const viewport: Viewport = {
+  themeColor: "#2B2440",
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -48,6 +54,8 @@ export const metadata: Metadata = {
     icon: "/icon.png",
     apple: "/apple-icon.png",
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Onseditout" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
