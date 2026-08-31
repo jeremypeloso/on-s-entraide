@@ -161,6 +161,8 @@ export default function ComptePage() {
     termine: "Terminé",
   };
 
+  const hasRole = isPro || isAsso || isAgent;
+
   return (
     <main className="font-display bg-neutral-50 min-h-screen py-12">
       <div className="max-w-4xl mx-auto px-6 space-y-6">
@@ -326,8 +328,9 @@ export default function ComptePage() {
           )}
         </div>
 
-        {/* ===== Passerelles pro / mairie ===== */}
+        {/* ===== Passerelles : seulement le(s) rôle(s) du compte, ou les 3 invitations ===== */}
         <div className="grid sm:grid-cols-2 gap-4">
+          {(hasRole ? isPro : true) && (
           <a
             href={isPro ? "/pro/espace" : "/pro"}
             className="bg-gradient-to-br from-orange-50 to-white border-2 border-coral/20 rounded-3xl p-6 hover:border-coral/50 hover:shadow-lg transition group"
@@ -342,6 +345,8 @@ export default function ComptePage() {
                 : "Activez votre profil pro et soyez visible sur votre zone d'intervention."}
             </p>
           </a>
+          )}
+          {(hasRole ? isAsso : true) && (
           <a
             href="/association/espace"
             className="bg-gradient-to-br from-lilac/10 to-white border-2 border-lilac/20 rounded-3xl p-6 hover:border-lilac/50 hover:shadow-lg transition group"
@@ -352,6 +357,8 @@ export default function ComptePage() {
               {isAsso ? "Page, événements et coordonnées." : "Créez sa page gratuitement et publiez vos événements dans l'agenda."}
             </p>
           </a>
+          )}
+          {(hasRole ? isAgent : true) && (
           <a
             href={isAgent ? "/mairie" : "/mairies"}
             className="bg-gradient-to-br from-sky/10 to-white border-2 border-sky/20 rounded-3xl p-6 hover:border-sky/50 hover:shadow-lg transition group"
@@ -366,6 +373,7 @@ export default function ComptePage() {
                 : "Certifiez votre commune et publiez vos alertes officielles."}
             </p>
           </a>
+          )}
         </div>
       </div>
     </main>
