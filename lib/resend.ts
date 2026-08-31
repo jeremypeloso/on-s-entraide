@@ -1,11 +1,21 @@
 import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialisation paresseuse : le client n'est créé qu'au premier envoi.
+// Évite le plantage du build quand RESEND_API_KEY n'est pas définie
+// (Vercel collecte les routes au build sans variables d'exécution).
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    if (!process.env.RESEND_API_KEY) throw new Error("RESEND_API_KEY manquante");
+    _resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return _resend;
+}
 
 const FROM = process.env.RESEND_FROM_EMAIL || "On se dit tout <bonjour@onseditout.fr>";
 
 export async function sendWelcomeEmail(to: string, communeName: string) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `Bienvenue à ${communeName} 🎉`,
@@ -32,7 +42,7 @@ export async function sendNewMessageEmail(
   annonceTitle: string,
   annonceUrl: string
 ) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `${fromName} vous a répondu sur "${annonceTitle}"`,
@@ -54,7 +64,7 @@ export async function sendVigilanceAlertEmail(
   communeName: string,
   signalementTitle: string
 ) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `Nouveau signalement à ${communeName}`,
@@ -72,7 +82,7 @@ export async function sendVigilanceAlertEmail(
 }
 
 export async function sendCommuneCertifiedEmail(to: string, communeName: string) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `${communeName} est certifiée sur On se dit tout`,
