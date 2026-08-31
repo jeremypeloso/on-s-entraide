@@ -2,7 +2,7 @@ export default function CguPage() {
   return (
     <main className="font-display max-w-3xl mx-auto px-6 py-14">
       <h1 className="text-3xl font-extrabold mb-2">Conditions générales d&apos;utilisation</h1>
-      <p className="text-xs font-bold text-neutral-400 mb-8">Dernière mise à jour : [DATE]</p>
+      <p className="text-xs font-bold text-neutral-400 mb-8">Dernière mise à jour : 31 août 2026</p>
       <div className="font-body text-sm text-neutral-600 leading-relaxed space-y-6">
         <section>
           <h2 className="font-display font-bold text-lg text-ink mb-2">1. Objet</h2>

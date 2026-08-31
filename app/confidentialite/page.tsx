@@ -2,7 +2,7 @@ export default function ConfidentialitePage() {
   return (
     <main className="font-display max-w-3xl mx-auto px-6 py-14">
       <h1 className="text-3xl font-extrabold mb-2">Politique de confidentialité</h1>
-      <p className="text-xs font-bold text-neutral-400 mb-8">Dernière mise à jour : [DATE]</p>
+      <p className="text-xs font-bold text-neutral-400 mb-8">Dernière mise à jour : 31 août 2026</p>
       <div className="font-body text-sm text-neutral-600 leading-relaxed space-y-6">
         <section>
           <h2 className="font-display font-bold text-lg text-ink mb-2">Données collectées</h2>
@@ -41,7 +41,7 @@ export default function ConfidentialitePage() {
             Conformément au RGPD, vous disposez d&apos;un droit d&apos;accès, de rectification, de
             suppression et de portabilité de vos données. Exercez-les via le{" "}
             <a href="/contact" className="text-coral-dark underline">formulaire de contact</a>.
-            Responsable de traitement : [RAISON SOCIALE].
+            Responsable de traitement : PELOSO CORPORATION, 76 D route des Vignes, 78270 Limetz-Villez.
           </p>
         </section>
       </div>

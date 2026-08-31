@@ -19,7 +19,7 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-bold uppercase tracking-wide text-white/40 mb-4">Découvrir</h4>
             <ul className="space-y-2.5 text-sm font-semibold font-body">
-              <li><a href="/#annonces" className="text-white/70 hover:text-white transition">Les dernières annonces</a></li>
+              <li><a href="/#acteurs" className="text-white/70 hover:text-white transition">Pour qui ?</a></li>
               <li><a href="/#categories" className="text-white/70 hover:text-white transition">Toutes les catégories</a></li>
               <li><a href="/#comparaison" className="text-white/70 hover:text-white transition">Pourquoi pas Facebook</a></li>
               <li><a href="/publier" className="text-white/70 hover:text-white transition">Publier une annonce</a></li>
@@ -28,8 +28,9 @@ export default function Footer() {
 
           {/* Pros & communes */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wide text-white/40 mb-4">Pros &amp; communes</h4>
+            <h4 className="text-sm font-bold uppercase tracking-wide text-white/40 mb-4">Assos, pros &amp; communes</h4>
             <ul className="space-y-2.5 text-sm font-semibold font-body">
+              <li><a href="/association/espace" className="text-white/70 hover:text-white transition">Vous dirigez une association ?</a></li>
               <li><a href="/pro" className="text-white/70 hover:text-white transition">Devenir Pro du quartier</a></li>
               <li><a href="/mairies" className="text-white/70 hover:text-white transition">Vous êtes une mairie ?</a></li>
               <li><a href="/mairies" className="text-white/70 hover:text-white transition">Commune certifiée ✓</a></li>

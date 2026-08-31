@@ -103,14 +103,14 @@ export default async function HomePage() {
 
         <div className="max-w-3xl mx-auto text-center relative z-10 px-6 pt-32 pb-32">
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold leading-[1.05] mb-4 text-white drop-shadow-lg">
-            Un coup de main,{" "}
+            Tout ce qui se passe{" "}
             <span className="bg-gradient-to-r from-sun via-coral to-pink bg-clip-text text-transparent">
-              à deux clics
-            </span>{" "}
-            de chez vous.
+              dans votre commune
+            </span>
+            , au même endroit.
           </h1>
           <p className="text-white/80 font-body text-lg mb-10 drop-shadow">
-            Tout ce qui se passe dans votre commune, au même endroit.
+            Entraide entre habitants, agenda des associations, pros vérifiés et informations de la mairie.
           </p>
           <CitySearch />
         </div>
@@ -138,6 +138,35 @@ export default async function HomePage() {
       </section>
       )}
 
+      {/* ============ LES 4 ACTEURS DE LA COMMUNE ============ */}
+      <section id="acteurs" className="bg-white pt-24 pb-8">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <Eyebrow>🏡 Une seule page par commune</Eyebrow>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Un espace pour chaque acteur de la commune</h2>
+            <p className="text-neutral-500 font-body max-w-2xl mx-auto">
+              Habitants, associations, professionnels et mairie se retrouvent au même endroit. Chacun y publie, chacun y trouve.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { emoji: "🏠", title: "Habitants", color: "from-coral/15 to-orange-50 border-coral/20", accent: "text-coral-dark", desc: "Annonces d'entraide, questions publiques, vigilance de quartier entre résidents.", cta: "Publier une annonce", href: "/publier", free: "Gratuit" },
+              { emoji: "🎭", title: "Associations", color: "from-lilac/15 to-white border-lilac/20", accent: "text-lilac", desc: "Une page pour votre association et vos événements dans l'agenda de la commune.", cta: "Créer ma page", href: "/association/espace", free: "Gratuit" },
+              { emoji: "💼", title: "Professionnels", color: "from-amber-100/60 to-white border-amber-200", accent: "text-amber-700", desc: "Fiche vérifiée (SIRET), avis clients, visibilité sur toutes les communes de votre zone.", cta: "Voir les offres", href: "/pro", free: "Dès 19€/mois" },
+              { emoji: "🏛️", title: "Mairie", color: "from-sky/15 to-white border-sky/20", accent: "text-sky", desc: "Page certifiée, alertes officielles, agenda municipal, coordonnées : la parole de la commune.", cta: "Certifier ma commune", href: "/mairies", free: "Dès 39€/mois" },
+            ].map((a) => (
+              <a key={a.title} href={a.href} className={`group bg-gradient-to-br ${a.color} border rounded-3xl p-6 flex flex-col hover:shadow-xl hover:-translate-y-0.5 transition`}>
+                <span className="text-3xl mb-3">{a.emoji}</span>
+                <h3 className="font-bold text-lg">{a.title}</h3>
+                <p className={`text-[11px] font-bold ${a.accent} mb-2`}>{a.free}</p>
+                <p className="text-sm text-neutral-600 font-body flex-1">{a.desc}</p>
+                <p className={`text-sm font-bold mt-4 ${a.accent}`}>{a.cta} →</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ============ COMMENT ÇA MARCHE — bande blanche épurée ============ */}
       <section className="bg-white py-24">
         <div className="max-w-5xl mx-auto px-6">
@@ -151,7 +180,7 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { n: 1, bg: "bg-coral", shadow: "shadow-coral/30", title: "Publiez en une minute", desc: "Choisissez une thématique, décrivez votre besoin : votre commune voit votre annonce." },
-              { n: 2, bg: "bg-mint", shadow: "shadow-mint/30", title: "Trouvez près de chez vous", desc: "Filtrez par thème, distance et disponibilité réelle." },
+              { n: 2, bg: "bg-mint", shadow: "shadow-mint/30", title: "Trouvez près de chez vous", desc: "Filtrez par thématique, recherchez, et voyez la disponibilité réelle." },
               { n: 3, bg: "bg-lilac", shadow: "shadow-lilac/30", title: "Rencontrez en confiance", desc: "Identités réelles, questions publiques sous chaque annonce, signalement communautaire." },
             ].map((s) => (
               <div key={s.n} className="bg-white rounded-3xl p-8 shadow-md border border-neutral-100">
@@ -173,9 +202,9 @@ export default async function HomePage() {
 
         <div className="max-w-5xl mx-auto px-6 relative z-10">
           <div className="text-center max-w-xl mx-auto mb-14">
-            <Eyebrow light>🗂️ Huit façons de s&apos;entraider</Eyebrow>
+            <Eyebrow light>🗂️ Huit thématiques d&apos;annonces</Eyebrow>
             <h2 className="text-3xl md:text-4xl font-bold mb-3 text-white">
-              Une thématique pour chaque coup de main
+              Une thématique pour chaque besoin entre habitants
             </h2>
             <p className="text-white/60 font-body">
               Chaque annonce est rangée au bon endroit, filtrable et localisée. Rien ne se perd dans le flux.
@@ -244,7 +273,7 @@ export default async function HomePage() {
               <div className="blob w-64 h-64 bg-sun -top-20 -left-10 opacity-40" />
             </div>
             <div className="relative z-10">
-              <h2 className="text-white text-3xl md:text-5xl font-bold mb-4">Votre quartier vous attend 🏡</h2>
+              <h2 className="text-white text-3xl md:text-5xl font-bold mb-4">Votre commune vous attend 🏡</h2>
               <p className="text-white/90 mb-10 font-body text-lg">
                 On lance ville par ville. Cherchez la vôtre pour voir ce qui s&apos;y passe déjà.
               </p>
