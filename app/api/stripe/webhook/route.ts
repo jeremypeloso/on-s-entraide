@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     if (meta.type === "pro" && meta.user_id) {
       await db.from("pro_profiles").update({
         subscription_plan: meta.plan,
+        pending_plan: null,
         subscription_status: active ? "active" : status === "past_due" ? "past_due" : "inactive",
         stripe_subscription_id: sub.id,
         current_period_end: periodEnd,

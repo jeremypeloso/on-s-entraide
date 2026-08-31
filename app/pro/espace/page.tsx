@@ -21,6 +21,7 @@ type ProProfile = {
   logo_url: string | null;
   stripe_subscription_id?: string | null;
   current_period_end?: string | null;
+  pending_plan?: string | null;
 };
 type Service = { id: string; label: string; price_from: number | null; price_note: string | null };
 type BaseCommune = { id: string; nom: string; code_postal: string | null; departement: string | null; lat: number | null; lng: number | null };
@@ -192,16 +193,34 @@ export default function EspaceProPage() {
   const [paying, setPaying] = useState<string | null>(null);
 
   async function choosePlan(planId: string) {
-    // Paiement sécurisé via Stripe Checkout ; l'activation se fait au retour (webhook)
     setPaying(planId);
     try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "pro", plan: planId }),
-      });
-      const j = await res.json().catch(() => ({ error: `Réponse invalide (${res.status})` }));
-      if (j.url) { window.location.href = j.url; return; }
-      window.alert(j.error ?? `Paiement indisponible (${res.status}).`);
+      if (pro?.stripe_subscription_id) {
+        // Déjà abonné : changement de plan (montée immédiate, descente à l'échéance)
+        const res = await fetch("/api/stripe/change-plan", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: planId }),
+        });
+        const j = await res.json().catch(() => ({}));
+        if (!res.ok) { window.alert(j.error ?? "Changement impossible."); }
+        else if (j.mode === "scheduled") {
+          setCheckoutMsg(`✓ Changement programmé : vous passerez en ${PLANS.find((x) => x.id === planId)?.label} le ${new Date(j.effective).toLocaleDateString("fr-FR")}, à la fin de votre période payée.`);
+          setPro((x) => (x ? { ...x, pending_plan: planId } : x));
+        } else {
+          setCheckoutMsg("✓ Plan mis à niveau immédiatement. La différence est facturée au prorata.");
+          setPro((x) => (x ? { ...x, subscription_plan: planId, pending_plan: null } : x));
+          await refreshZone();
+        }
+      } else {
+        // Première souscription : Stripe Checkout
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "pro", plan: planId }),
+        });
+        const j = await res.json().catch(() => ({ error: `Réponse invalide (${res.status})` }));
+        if (j.url) { window.location.href = j.url; return; }
+        window.alert(j.error ?? `Paiement indisponible (${res.status}).`);
+      }
     } catch (e: any) {
       window.alert("Erreur réseau : " + e.message);
     }
@@ -393,6 +412,7 @@ export default function EspaceProPage() {
               <h2 className="font-bold text-lg mb-1">💳 Mon abonnement</h2>
               <p className="text-sm text-neutral-500 font-body mb-2">
                 Mensuel, sans engagement, paiement sécurisé par Stripe. Résiliable à tout moment.
+                Une montée en gamme est immédiate (prorata), une descente prend effet à la fin de la période payée.
               </p>
               {checkoutMsg && <p className="text-sm font-bold text-mint bg-mint/10 rounded-xl px-4 py-2.5 mb-4">{checkoutMsg}</p>}
               {pro.subscription_status === "past_due" && (
@@ -431,7 +451,9 @@ export default function EspaceProPage() {
                       <p className="text-xs text-neutral-500 font-body mt-1">{p.desc}</p>
                       {active
                         ? <p className="text-[11px] font-bold text-mint mt-2">✓ Plan actuel</p>
-                        : <p className="text-[11px] font-bold text-coral mt-2">{paying === p.id ? "Redirection..." : pro.stripe_subscription_id ? "Changer pour ce plan →" : "Souscrire →"}</p>}
+                        : pro.pending_plan === p.id
+                          ? <p className="text-[11px] font-bold text-amber-600 mt-2">⏳ Prend effet à l&apos;échéance</p>
+                          : <p className="text-[11px] font-bold text-coral mt-2">{paying === p.id ? "Un instant..." : !pro.stripe_subscription_id ? "Souscrire →" : (["essentiel","visibilite","premium"].indexOf(p.id) > ["essentiel","visibilite","premium"].indexOf(pro.subscription_plan ?? "essentiel") ? "Passer à ce plan maintenant →" : "Passer à ce plan à l'échéance →")}</p>}
                     </button>
                   );
                 })}
@@ -587,3 +609,4 @@ export default function EspaceProPage() {
     </main>
   );
 }
+git add -A && git commit -m "Changement de plan: montee immediate, descente a l'echeance" && git push
