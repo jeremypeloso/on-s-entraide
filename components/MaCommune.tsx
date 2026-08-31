@@ -55,11 +55,12 @@ export default function MaCommune() {
   return (
     <a
       href={`/${commune.slug}`}
-      className="hidden md:inline-flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-full bg-mint/10 text-ink hover:bg-mint/20 transition max-w-[220px]"
+      className="inline-flex items-center gap-2 text-sm font-bold px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-full bg-mint/10 text-ink hover:bg-mint/20 transition max-w-[44px] sm:max-w-[220px] justify-center"
       title={`Ma commune : ${commune.nom}`}
+      aria-label={`Ma commune : ${commune.nom}`}
     >
-      <span>🏡</span>
-      <span className="truncate">{commune.nom}</span>
+      <span className="text-base">🏡</span>
+      <span className="hidden sm:inline truncate">{commune.nom}</span>
     </a>
   );
 }
