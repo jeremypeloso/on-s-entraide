@@ -5,6 +5,7 @@ import AnnoncesList from "@/components/AnnoncesList";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import VigilanceModule from "@/components/VigilanceModule";
 import { assoCat } from "@/lib/associations";
+import ShareButtons from "@/components/ShareButtons";
 
 type Tab = "fil" | "agenda" | "pros" | "assos" | "mairie" | "vigilance";
 
@@ -56,6 +57,9 @@ export default function CommuneTabs({
   }, []);
 
   const allPros = [...prosPremium, ...prosVisibilite, ...prosEssentiel];
+  const shareUrl = `https://onseditout.fr/${commune.slug}`;
+  const shareText = `Tout ce qui se passe à ${commune.nom} : annonces, agenda, pros et mairie 👉`;
+  const isEmpty = annonces.length === 0 && evenements.length === 0 && allPros.length === 0 && associations.length === 0;
   const prosMisEnAvant = [...prosPremium, ...prosVisibilite];
   const evenementsAVenir = useMemo(
     () => evenements.filter((e) => new Date(e.ends_at ?? e.starts_at) >= new Date(Date.now() - 86400000)),
@@ -208,6 +212,7 @@ export default function CommuneTabs({
               <span className="bg-white/80 rounded-full px-3.5 py-1.5">📋 {annonces.length} annonce{annonces.length > 1 ? "s" : ""}</span>
               {evenementsAVenir.length > 0 && <span className="bg-white/80 rounded-full px-3.5 py-1.5">📅 {evenementsAVenir.length} événement{evenementsAVenir.length > 1 ? "s" : ""}</span>}
               {allPros.length > 0 && <span className="bg-white/80 rounded-full px-3.5 py-1.5">💼 {allPros.length} pro{allPros.length > 1 ? "s" : ""}</span>}
+              <ShareButtons url={shareUrl} text={shareText} compact />
             </div>
           </div>
 
@@ -305,7 +310,43 @@ export default function CommuneTabs({
                     </div>
                     </div>
                   )}
-                  <AnnoncesList annonces={annonces} />
+                  {annonces.length === 0 ? (
+                    <div className="bg-gradient-to-br from-orange-50 to-white border-2 border-dashed border-coral/30 rounded-3xl p-8 text-center">
+                      <p className="text-4xl mb-3">🌱</p>
+                      <h3 className="text-xl font-extrabold">{isEmpty ? `${commune.nom} n'a pas encore commencé` : "Pas encore d'annonce entre habitants"}</h3>
+                      <p className="text-sm text-neutral-500 font-body mt-2 max-w-md mx-auto">
+                        Soyez le premier à lancer l&apos;entraide ici : un objet à prêter, un coup de main, un trajet à partager. Et prévenez vos voisins, tout part de là.
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-3 mt-5">
+                        <a href="/publier" className="bg-gradient-to-br from-coral to-coral-dark text-white text-sm font-bold px-6 py-3 rounded-full shadow-lg shadow-coral/25 hover:scale-[1.02] transition">
+                          ＋ Publier la première annonce
+                        </a>
+                        <a href={`https://wa.me/?text=${encodeURIComponent(`Salut ! Il y a maintenant une page pour ${commune.nom} avec les annonces entre voisins, l'agenda et la mairie. Viens voir 👉 ${shareUrl}`)}`}
+                          target="_blank" rel="noopener noreferrer"
+                          className="bg-[#25D366] text-white text-sm font-bold px-6 py-3 rounded-full hover:scale-[1.02] transition">
+                          💬 Inviter mes voisins
+                        </a>
+                      </div>
+                      {isEmpty && (
+                        <div className="grid sm:grid-cols-3 gap-3 mt-8 text-left">
+                          <a href="/association/espace" className="bg-white border border-lilac/20 rounded-2xl p-4 hover:border-lilac/50 transition">
+                            <p className="font-bold text-sm">🎭 Vous dirigez une association ?</p>
+                            <p className="text-xs text-neutral-500 font-body mt-1">Créez sa page et publiez vos événements, gratuitement.</p>
+                          </a>
+                          <a href="/pro" className="bg-white border border-amber-200 rounded-2xl p-4 hover:border-amber-400 transition">
+                            <p className="font-bold text-sm">💼 Vous êtes artisan ou commerçant ?</p>
+                            <p className="text-xs text-neutral-500 font-body mt-1">Soyez le premier pro visible à {commune.nom}.</p>
+                          </a>
+                          <a href="/mairies" className="bg-white border border-sky/20 rounded-2xl p-4 hover:border-sky/50 transition">
+                            <p className="font-bold text-sm">🏛️ Vous êtes élu ou agent ?</p>
+                            <p className="text-xs text-neutral-500 font-body mt-1">Certifiez la page et informez vos habitants.</p>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <AnnoncesList annonces={annonces} />
+                  )}
                   {prosEssentiel.length > 0 && (
                     <div className="mt-8 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5">
                       <h4 className="font-bold mb-1">🛠️ Les pros près de chez vous</h4>
@@ -323,6 +364,10 @@ export default function CommuneTabs({
                       <p className="text-3xl mb-2">📅</p>
                       <p className="font-bold">Aucun événement programmé</p>
                       <p className="text-sm text-neutral-500 font-body mt-1">La mairie et les associations de {commune.nom} publieront ici leurs événements.</p>
+                      <div className="flex flex-wrap justify-center gap-2 mt-4">
+                        <a href="/association/espace" className="text-xs font-bold px-4 py-2 rounded-full bg-lilac text-white">🎭 Publier un événement associatif</a>
+                        <a href="/mairies" className="text-xs font-bold px-4 py-2 rounded-full border border-sky/30 text-sky">🏛️ Vous êtes la mairie ?</a>
+                      </div>
                     </div>
                   ) : evenementsAVenir.map((e) => <EventCard key={e.id} e={e} />)}
                 </div>
@@ -334,7 +379,13 @@ export default function CommuneTabs({
                     <div className="bg-white rounded-3xl border border-neutral-100 p-10 text-center">
                       <p className="text-3xl mb-2">💼</p>
                       <p className="font-bold">Aucun professionnel ne couvre encore {commune.nom}</p>
-                      <a href="/pro" className="inline-block mt-3 text-sm font-bold text-coral">Vous êtes un pro du secteur ? →</a>
+                      <div className="flex flex-wrap justify-center gap-2 mt-4">
+                        <a href="/pro" className="text-xs font-bold px-4 py-2 rounded-full bg-ink text-white">Vous êtes un pro du secteur ? →</a>
+                        <a href={`https://wa.me/?text=${encodeURIComponent(`Tu devrais référencer ton activité sur la page de ${commune.nom}, c'est là que les habitants cherchent des artisans 👉 https://onseditout.fr/pro`)}`}
+                          target="_blank" rel="noopener noreferrer" className="text-xs font-bold px-4 py-2 rounded-full border border-neutral-200 hover:border-ink">
+                          💬 Vous connaissez un bon artisan ? Invitez-le
+                        </a>
+                      </div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
