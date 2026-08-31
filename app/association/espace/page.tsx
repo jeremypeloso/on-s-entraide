@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { uploadPhoto } from "@/lib/upload";
 import EvenementsManager from "@/components/EvenementsManager";
 import { ASSO_CATEGORIES } from "@/lib/associations";
+import DangerZone from "@/components/DangerZone";
 
 
 
@@ -200,13 +201,23 @@ export default function EspaceAssociationPage() {
         </div>
 
         {asso && (
-          <EvenementsManager
-            communeId={asso.commune_id}
-            communeNom={asso.communes?.nom ?? ""}
-            organisateurType="association"
-            organisateurNom={asso.nom}
-            associationId={asso.id}
-          />
+          <>
+            <EvenementsManager
+              communeId={asso.commune_id}
+              communeNom={asso.communes?.nom ?? ""}
+              organisateurType="association"
+              organisateurNom={asso.nom}
+              associationId={asso.id}
+            />
+            <DangerZone
+              scope="association"
+              title="Supprimer la page de mon association"
+              description="La page et tous ses événements seront supprimés. Votre compte habitant est conservé."
+              confirmWord="SUPPRIMER"
+              buttonLabel="Supprimer la page de l'association"
+              redirectTo="/compte"
+            />
+          </>
         )}
       </div>
     </main>

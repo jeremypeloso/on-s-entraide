@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { uploadPhoto } from "@/lib/upload";
 import EvenementsManager from "@/components/EvenementsManager";
 import MairieAbonnement from "@/components/MairieAbonnement";
+import DangerZone from "@/components/DangerZone";
 
 type Commune = { id: string; nom: string; slug: string; is_certified: boolean };
 type Alerte = { id: string; title: string; body: string | null; starts_at: string | null; ends_at: string | null; created_at: string; photo_url: string | null };
@@ -427,6 +428,16 @@ export default function MairiePage() {
             </div>
           )}
         </div>
+
+        <DangerZone
+          scope="mairie"
+          communeId={commune.id}
+          title="Ne plus gérer cette commune"
+          description="Votre compte sera détaché de la mairie. La commune, sa certification, ses alertes et ses événements sont conservés ; un autre agent pourra être rattaché par notre équipe."
+          confirmWord="QUITTER"
+          buttonLabel="Quitter la gestion de la commune"
+          redirectTo="/compte"
+        />
       </div>
     </main>
   );

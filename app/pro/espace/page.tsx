@@ -7,6 +7,7 @@ import { uploadPhoto } from "@/lib/upload";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import ProReviews from "@/components/ProReviews";
 import ZoneMap from "@/components/ZoneMap";
+import DangerZone from "@/components/DangerZone";
 
 type ProProfile = {
   id: string;
@@ -571,6 +572,15 @@ export default function EspaceProPage() {
                 </div>
               )}
             </div>
+
+            <DangerZone
+              scope="pro"
+              title="Supprimer mon espace pro"
+              description="Votre fiche, vos services, votre zone et vos avis seront supprimés, et votre abonnement résilié immédiatement. Votre compte habitant est conservé."
+              confirmWord="SUPPRIMER"
+              buttonLabel="Supprimer mon espace pro"
+              redirectTo="/compte"
+            />
           </>
         )}
       </div>

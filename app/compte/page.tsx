@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { uploadPhoto } from "@/lib/upload";
+import DangerZone from "@/components/DangerZone";
 
 type Commune = { id: string; nom: string; code_postal: string | null; departement: string | null };
 type Annonce = { id: string; title: string; statut: string; created_at: string; categories: { label: string; emoji: string } | null };
@@ -403,6 +404,15 @@ export default function ComptePage() {
           </a>
           )}
         </div>
+
+        <DangerZone
+          scope="compte"
+          title="Supprimer mon compte"
+          description="Toutes vos données seront effacées : annonces, questions, avis, signalements, et le cas échéant votre espace pro ou votre association. Vos abonnements en cours sont résiliés automatiquement."
+          confirmWord="SUPPRIMER"
+          buttonLabel="Supprimer définitivement mon compte"
+          redirectTo="/"
+        />
       </div>
     </main>
   );
