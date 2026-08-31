@@ -24,9 +24,9 @@ type BaseCommune = { id: string; nom: string; code_postal: string | null; depart
 type CommuneSug = { id: string; nom: string; code_postal: string | null; departement: string | null };
 
 const PLANS = [
-  { id: "essentiel", label: "Essentiel", price: "19€/mois", desc: "Section pros sous les annonces", radius: 10 },
-  { id: "visibilite", label: "Visibilité", price: "39€/mois", desc: "Encart Pros du quartier", radius: 25 },
-  { id: "premium", label: "Premium", price: "79€/mois", desc: "Bandeau en haut de page", radius: 50 },
+  { id: "essentiel", label: "Essentiel", price: "19€/mois", desc: "Référencé en bas de page · 10 km", radius: 10 },
+  { id: "visibilite", label: "Visibilité", price: "39€/mois", desc: "Mis en avant en haut de page · 25 km", radius: 25 },
+  { id: "premium", label: "Premium", price: "79€/mois", desc: "Mis en avant en haut de page · 50 km", radius: 50 },
 ];
 
 const RADIUS: Record<string, number> = { essentiel: 10, visibilite: 25, premium: 50 };

@@ -23,12 +23,12 @@ const PLANS = [
     oldPrice: "39€",
     period: "/mois",
     launchNote: "Offre de lancement : 19€/mois pendant 6 mois, puis 39€/mois. Sans engagement.",
-    desc: "Pour développer votre activité sur votre secteur.",
+    desc: "Mis en avant en haut de page, sur votre bassin de vie.",
     highlight: true,
     features: [
       "Tout Essentiel, plus :",
       "Zone de visibilité : 25 km autour de votre adresse",
-      "Encart « Pros du quartier » sur toutes les communes de votre zone",
+      "Mis en avant en haut de page sur toutes les communes de votre zone",
       "1 annonce mise en avant dans le fil / mois",
       "Statistiques de vues et de contacts",
       "Réponse prioritaire du support",
@@ -45,8 +45,8 @@ const PLANS = [
     features: [
       "Tout Visibilité, plus :",
       "Zone de visibilité : 50 km autour de votre adresse",
-      "Bandeau « Pro mis en avant » sur toutes les communes de votre zone",
-      "Position prioritaire dans l'encart Pros",
+      "Mis en avant en haut de page sur toutes les communes de votre zone",
+      "Position prioritaire parmi les pros mis en avant",
       "Mises en avant illimitées dans le fil",
       "Accompagnement à la création du profil",
     ],
@@ -57,21 +57,21 @@ const PLANS = [
 const PLACEMENTS = [
   {
     emoji: "🏙️",
-    title: "Le bandeau de ville",
-    desc: "Votre activité affichée en haut de la page de chaque commune de votre zone, vue par tous les visiteurs dès leur arrivée.",
-    plan: "Premium",
+    title: "Mis en avant, en haut de page",
+    desc: "Votre activité affichée en tête de la page de chaque commune de votre zone, vue par tous les visiteurs dès leur arrivée. Les pros Premium passent en premier.",
+    plan: "Visibilité et Premium",
   },
   {
     emoji: "📋",
-    title: "L'encart Pros du quartier",
-    desc: "Votre fiche dans la colonne dédiée aux professionnels, à côté du fil d'annonces des habitants.",
-    plan: "Visibilité et Premium",
+    title: "Référencé, en bas de page",
+    desc: "Votre fiche dans la section « Les pros près de chez vous », sous le fil d'annonces, sur les communes à 10 km.",
+    plan: "Essentiel",
   },
   {
     emoji: "📰",
     title: "La mise en avant dans le fil",
     desc: "Votre annonce insérée dans le fil des habitants, clairement étiquetée « Sponsorisé », jamais en première position devant une urgence.",
-    plan: "Tous les plans (à l'unité ou incluse)",
+    plan: "Visibilité (1/mois) et Premium (illimité)",
   },
 ];
 

@@ -43,7 +43,7 @@ export default function CommuneTabs({
     window.addEventListener("resize", updateBand);
     return () => window.removeEventListener("resize", updateBand);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, prosPremium.length]);
+  }, [tab, prosPremium.length, prosVisibilite.length]);
 
   useEffect(() => {
     const el = tabsRef.current;
@@ -56,6 +56,7 @@ export default function CommuneTabs({
   }, []);
 
   const allPros = [...prosPremium, ...prosVisibilite, ...prosEssentiel];
+  const prosMisEnAvant = [...prosPremium, ...prosVisibilite];
   const evenementsAVenir = useMemo(
     () => evenements.filter((e) => new Date(e.ends_at ?? e.starts_at) >= new Date(Date.now() - 86400000)),
     [evenements]
@@ -273,7 +274,7 @@ export default function CommuneTabs({
             <div className="min-w-0">
               {tab === "fil" && (
                 <>
-                  {prosPremium.length > 0 && (
+                  {prosMisEnAvant.length > 0 && (
                     <div className="relative mb-5 group">
                       {bandArrows.left && (
                         <button onClick={() => scrollBand(-1)} aria-label="Précédent"
@@ -288,7 +289,7 @@ export default function CommuneTabs({
                         </button>
                       )}
                     <div ref={bandRef} onScroll={updateBand} className="flex gap-3 overflow-x-auto no-scrollbar">
-                      {prosPremium.map((p: any) => (
+                      {prosMisEnAvant.map((p: any) => (
                         <a key={p.id} href={`/pro/${p.id}`} className="flex-shrink-0 flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl px-4 py-3 hover:border-amber-300 transition">
                           {p.logo_url ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
@@ -425,21 +426,7 @@ export default function CommuneTabs({
                 </button>
               )}
 
-              {prosVisibilite.length > 0 && tab === "fil" && (
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-3xl p-5">
-                  <p className="font-bold text-sm mb-3">🔨 Pros du quartier <span className="text-[9px] text-amber-700/60">Sponsorisé</span></p>
-                  <div className="space-y-2.5">
-                    {prosVisibilite.slice(0, 4).map((p: any) => (
-                      <a key={p.id} href={`/pro/${p.id}`} className="block hover:bg-white/60 rounded-xl px-2 -mx-2 py-1 transition">
-                        <p className="text-sm font-bold flex items-center gap-1.5 min-w-0"><span className="truncate">{p.business_name}</span>{p.siret_verified && <VerifiedBadge size={14} />}</p>
-                        {p.tagline && <p className="text-xs text-neutral-500 font-semibold truncate">{p.tagline}</p>}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {tab !== "vigilance" && (
+              {tab === "fil" && (
                 <button onClick={() => setTab("vigilance")} className="w-full text-left bg-white border border-neutral-100 rounded-3xl p-5 hover:border-red-200 transition">
                   <p className="font-bold text-sm">👀 Vigilance de quartier</p>
                   <p className="text-xs text-neutral-500 font-body mt-1">{isResident ? "Signalements entre résidents →" : "🔒 Réservé aux habitants déclarés"}</p>
