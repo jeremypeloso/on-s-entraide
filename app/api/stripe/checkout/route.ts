@@ -5,6 +5,7 @@ import { getStripe, PRICES, COUPONS, SITE_URL } from "@/lib/stripe";
 // Crée une session Stripe Checkout (abonnement) pour un pro ou une mairie.
 // body : { type: "pro", plan } ou { type: "mairie", plan, communeId }
 export async function POST(request: Request) {
+  try {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
@@ -65,4 +66,8 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json({ url: session.url });
+  } catch (e: any) {
+    console.error("Stripe checkout:", e);
+    return NextResponse.json({ error: e.message ?? "Erreur Stripe" }, { status: 500 });
+  }
 }

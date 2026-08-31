@@ -170,7 +170,7 @@ export default function EspaceProPage() {
       .single();
 
     setSaving(false);
-    if (error) { setError("Enregistrement impossible."); return; }
+    if (error) { setError("Enregistrement impossible : " + error.message); return; }
     setPro(data);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -193,14 +193,18 @@ export default function EspaceProPage() {
   async function choosePlan(planId: string) {
     // Paiement sécurisé via Stripe Checkout ; l'activation se fait au retour (webhook)
     setPaying(planId);
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "pro", plan: planId }),
-    });
-    const j = await res.json();
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "pro", plan: planId }),
+      });
+      const j = await res.json().catch(() => ({ error: `Réponse invalide (${res.status})` }));
+      if (j.url) { window.location.href = j.url; return; }
+      window.alert(j.error ?? `Paiement indisponible (${res.status}).`);
+    } catch (e: any) {
+      window.alert("Erreur réseau : " + e.message);
+    }
     setPaying(null);
-    if (j.url) window.location.href = j.url;
-    else window.alert(j.error ?? "Paiement indisponible pour le moment.");
   }
 
   async function openPortal() {
