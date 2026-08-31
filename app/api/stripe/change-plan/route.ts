@@ -45,8 +45,9 @@ export async function POST(request: Request) {
       const created = await stripe.subscriptionSchedules.create({ from_subscription: sub.id });
       scheduleId = created.id;
     }
-    const periodStart = (sub as any).current_period_start as number;
-    const periodEnd = (sub as any).current_period_end as number;
+    const periodStart: number = (sub as any).current_period_start ?? (item as any).current_period_start;
+    const periodEnd: number = (sub as any).current_period_end ?? (item as any).current_period_end;
+    if (!periodStart || !periodEnd) return NextResponse.json({ error: "Période de facturation introuvable" }, { status: 500 });
     await stripe.subscriptionSchedules.update(scheduleId, {
       end_behavior: "release",
       phases: [

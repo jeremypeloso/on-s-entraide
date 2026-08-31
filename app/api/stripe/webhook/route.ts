@@ -24,7 +24,9 @@ export async function POST(request: Request) {
     const meta = sub.metadata ?? {};
     const status = sub.status; // active, trialing, past_due, canceled, unpaid, incomplete...
     const active = status === "active" || status === "trialing";
-    const periodEnd = new Date((sub as any).current_period_end * 1000).toISOString();
+    const item0: any = sub.items?.data?.[0];
+    const endTs: number | undefined = (sub as any).current_period_end ?? item0?.current_period_end;
+    const periodEnd = endTs ? new Date(endTs * 1000).toISOString() : null;
 
     if (meta.type === "pro" && meta.user_id) {
       await db.from("pro_profiles").update({
