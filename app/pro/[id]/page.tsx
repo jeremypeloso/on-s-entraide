@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import VerifiedBadge from "@/components/VerifiedBadge";
+import ProReviews, { Stars } from "@/components/ProReviews";
 
 const RADIUS: Record<string, number> = { essentiel: 10, visibilite: 25, premium: 50 };
 
@@ -20,6 +21,10 @@ export default async function FicheProPage({ params }: { params: Promise<{ id: s
     .from("pro_services")
     .select("*")
     .eq("pro_id", id);
+
+  const { data: ratings } = await supabase.from("pro_reviews").select("rating").eq("pro_id", id);
+  const nbAvis = ratings?.length ?? 0;
+  const moyenne = nbAvis ? ratings!.reduce((s, r) => s + r.rating, 0) / nbAvis : 0;
 
   const { count: zoneCount } = await supabase
     .from("pro_zones")
@@ -48,10 +53,10 @@ export default async function FicheProPage({ params }: { params: Promise<{ id: s
             {/* En-tête pro */}
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-3xl p-8">
               <div className="flex items-start gap-5">
-                {pro.profiles?.avatar_url ? (
+                {(pro.logo_url || pro.profiles?.avatar_url) ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
-                    src={pro.profiles.avatar_url}
+                    src={pro.logo_url ?? pro.profiles.avatar_url}
                     alt=""
                     className="w-16 h-16 rounded-2xl object-contain bg-white border border-amber-200 p-1 flex-shrink-0"
                   />
@@ -68,9 +73,15 @@ export default async function FicheProPage({ params }: { params: Promise<{ id: s
                   {pro.tagline && (
                     <p className="text-sm font-semibold text-neutral-600 mt-1">{pro.tagline}</p>
                   )}
+                  {nbAvis > 0 && (
+                    <p className="flex items-center gap-2 mt-2 text-sm font-bold">
+                      <Stars value={Math.round(moyenne)} size={15} /> {moyenne.toFixed(1)}
+                      <a href="#avis" className="text-neutral-400 hover:text-coral">({nbAvis} avis)</a>
+                    </p>
+                  )}
                   {pro.siret_verified && (
                     <p className="text-[11px] font-bold text-mint mt-2">
-                      ✓ Pro vérifié — SIRET contrôlé par onsentraide.fr
+                      ✓ Pro vérifié — SIRET contrôlé par onseditout.fr
                     </p>
                   )}
                 </div>
@@ -114,6 +125,11 @@ export default async function FicheProPage({ params }: { params: Promise<{ id: s
                 </p>
               </div>
             )}
+
+            {/* Avis */}
+            <div id="avis">
+              <ProReviews proId={pro.id} proName={pro.business_name} />
+            </div>
 
             {/* Zone */}
             {base && (

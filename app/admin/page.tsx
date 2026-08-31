@@ -4,14 +4,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Tab = "stats" | "moderation" | "annonces" | "users" | "pros" | "mairies" | "contacts";
+type Tab = "stats" | "moderation" | "avis" | "annonces" | "users" | "pros" | "assos" | "mairies" | "contacts";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "stats", label: "📊 Vue d'ensemble" },
   { id: "moderation", label: "🚩 Modération" },
+  { id: "avis", label: "⭐ Avis signalés" },
   { id: "annonces", label: "📋 Annonces" },
   { id: "users", label: "👥 Utilisateurs" },
   { id: "pros", label: "💼 Pros" },
+  { id: "assos", label: "🎭 Associations" },
   { id: "mairies", label: "🏛️ Mairies" },
   { id: "contacts", label: "📬 Messages" },
 ];
@@ -54,8 +56,8 @@ export default function AdminPage() {
   const load = useCallback(async (t: Tab, extra?: any) => {
     setLoading(true);
     const actionMap: Record<Tab, string> = {
-      stats: "stats", moderation: "signalements", annonces: "annonces",
-      users: "users", pros: "pros", mairies: "communes_certifiees", contacts: "contacts",
+      stats: "stats", moderation: "signalements", avis: "avis_signales", annonces: "annonces",
+      users: "users", pros: "pros", assos: "assos", mairies: "communes_certifiees", contacts: "contacts",
     };
     const res = await api(actionMap[t], extra);
     setData(res);
@@ -120,6 +122,8 @@ export default function AdminPage() {
               { label: "Communes certifiées", value: data.certifiees, emoji: "🏛️" },
               { label: "Signalements en attente", value: data.signalements, emoji: "🚩", alert: (data.signalements ?? 0) > 0 },
               { label: "Messages non traités", value: data.contacts, emoji: "📬", alert: (data.contacts ?? 0) > 0 },
+              { label: "Avis signalés", value: data.avisSignales, emoji: "⭐", alert: (data.avisSignales ?? 0) > 0 },
+              { label: "Associations à valider", value: data.assosAttente, emoji: "🎭", alert: (data.assosAttente ?? 0) > 0 },
               { label: "Questions publiques", value: data.comments, emoji: "💬" },
             ].map((s: any) => (
               <div
@@ -177,6 +181,38 @@ export default function AdminPage() {
                     >
                       Rejeter
                     </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ===== AVIS SIGNALÉS ===== */}
+        {!loading && tab === "avis" && data?.data && (
+          <div className="space-y-3">
+            {data.data.length === 0 && <p className="text-center text-sm font-bold text-neutral-400 py-10">🎉 Aucun avis signalé.</p>}
+            {data.data.map((s: any) => (
+              <div key={s.id} className="bg-white rounded-2xl border border-neutral-200 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-red-500 uppercase">{s.motif}</p>
+                    <p className="text-xs font-bold text-neutral-400 mt-0.5">Signalé par <a href={`/pro/${s.pro_id}`} target="_blank" className="underline">{s.pro?.business_name}</a></p>
+                    {s.commentaire && <p className="text-xs text-neutral-500 font-body mt-1">« {s.commentaire} »</p>}
+                    {s.pro_reviews ? (
+                      <div className="mt-3 bg-neutral-50 rounded-xl px-4 py-3">
+                        <p className="text-xs font-bold">{s.pro_reviews.profiles?.full_name ?? "?"} · {"★".repeat(s.pro_reviews.rating)}{"☆".repeat(5 - s.pro_reviews.rating)} · {new Date(s.pro_reviews.created_at).toLocaleDateString("fr-FR")}</p>
+                        <p className="text-sm text-neutral-600 font-body mt-1">{s.pro_reviews.body ?? "(sans commentaire)"}</p>
+                      </div>
+                    ) : <p className="text-xs text-neutral-400 mt-2">Avis déjà supprimé</p>}
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    {s.pro_reviews && (
+                      <button onClick={() => act("avis_supprimer", { reviewId: s.pro_reviews.id }, "Avis supprimé")}
+                        className="text-xs font-bold px-4 py-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition">Supprimer l&apos;avis</button>
+                    )}
+                    <button onClick={() => act("avis_signalement_rejeter", { id: s.id }, "Signalement rejeté, avis conservé")}
+                      className="text-xs font-bold px-4 py-2 rounded-full border border-neutral-200 hover:border-ink transition">Conserver l&apos;avis</button>
                   </div>
                 </div>
               </div>
@@ -271,6 +307,32 @@ export default function AdminPage() {
                 >
                   {p.siret_verified ? "✓ Vérifié" : "⏳ À vérifier"}
                 </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ===== ASSOCIATIONS ===== */}
+        {!loading && tab === "assos" && data?.data && (
+          <div className="bg-white rounded-2xl border border-neutral-200 divide-y divide-neutral-100">
+            {data.data.length === 0 && <p className="text-center text-sm font-bold text-neutral-400 py-10">Aucune association.</p>}
+            {data.data.map((a: any) => (
+              <div key={a.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
+                <a href={`/association/${a.id}`} target="_blank" className="flex-1 min-w-[180px] font-bold text-sm hover:text-lilac">{a.nom}</a>
+                <span className="text-xs font-bold text-neutral-400">{a.communes?.nom}</span>
+                <span className="text-xs font-bold text-neutral-400">{a.profiles?.full_name}</span>
+                {a.rna ? (
+                  <a href={`https://www.journal-officiel.gouv.fr/pages/associations-recherche/?q=${a.rna}`} target="_blank" rel="noopener noreferrer"
+                    className="text-xs font-mono font-bold text-sky hover:underline" title="Vérifier au Journal Officiel">{a.rna} ↗</a>
+                ) : <span className="text-xs font-bold text-red-400">RNA manquant</span>}
+                <button
+                  onClick={() => act("asso_toggle_verif", { id: a.id, value: !a.is_verified }, a.is_verified ? "Validation retirée" : "Association validée")}
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition ${a.is_verified ? "bg-lilac/15 text-lilac" : "bg-amber-100 text-amber-700"}`}
+                >
+                  {a.is_verified ? "✓ Validée" : "⏳ À valider"}
+                </button>
+                <button onClick={() => { if (window.confirm("Supprimer cette association et ses événements ?")) act("asso_supprimer", { id: a.id }, "Association supprimée"); }}
+                  className="text-xs font-bold text-neutral-300 hover:text-red-500 transition">🗑️</button>
               </div>
             ))}
           </div>

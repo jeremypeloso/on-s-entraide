@@ -7,10 +7,10 @@ export default function Footer() {
           <div className="md:col-span-1">
             <a href="/" className="inline-block mb-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.webp" alt="onsentraide.fr" className="h-12 w-auto brightness-0 invert opacity-90" />
+              <img src="/logo-blanc.webp" alt="onseditout.fr" className="h-12 w-auto" />
             </a>
             <p className="text-sm text-white/60 font-body leading-relaxed">
-              Toute l&apos;entraide de votre commune, au même endroit. Objets, services,
+              Tout ce qui se passe dans votre commune, au même endroit. Objets, services,
               transport, garde, alertes : vos voisins sont à deux clics.
             </p>
           </div>
@@ -54,14 +54,14 @@ export default function Footer() {
           <p className="text-xs text-white/50 font-body font-semibold leading-relaxed">
             En cas d&apos;urgence réelle, composez toujours le <strong className="text-white/80">17</strong> (police),
             le <strong className="text-white/80">15</strong> (SAMU) ou le <strong className="text-white/80">112</strong>.
-            Onsentraide ne remplace jamais les services de secours.
+            Onseditout ne remplace jamais les services de secours.
           </p>
         </div>
 
         {/* Barre du bas */}
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-xs text-white/40 font-body font-semibold">
-            © {new Date().getFullYear()} onsentraide.fr · Tous droits réservés
+            © {new Date().getFullYear()} onseditout.fr · Tous droits réservés
           </p>
           <p className="text-xs text-white/40 font-body font-semibold">
             Fait avec ❤️ en France, commune par commune 🇫🇷

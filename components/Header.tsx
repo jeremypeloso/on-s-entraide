@@ -9,7 +9,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center flex-shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.webp" alt="onsentraide.fr" className="h-14 w-auto" />
+          <img src="/logo.webp" alt="onseditout.fr" className="h-14 w-auto" />
         </Link>
 
         <MaCommune />

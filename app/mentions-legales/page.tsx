@@ -6,7 +6,7 @@ export default function MentionsLegalesPage() {
         <section>
           <h2 className="font-display font-bold text-lg text-ink mb-2">Éditeur du site</h2>
           <p>
-            onsentraide.fr est édité par [RAISON SOCIALE], [FORME JURIDIQUE] au capital de [CAPITAL] €,
+            onseditout.fr est édité par [RAISON SOCIALE], [FORME JURIDIQUE] au capital de [CAPITAL] €,
             immatriculée au RCS de [VILLE] sous le numéro [SIREN], dont le siège social est situé
             [ADRESSE]. Directeur de la publication : [NOM].
           </p>

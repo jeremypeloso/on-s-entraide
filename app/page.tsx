@@ -87,7 +87,7 @@ export default function HomePage() {
             de chez vous.
           </h1>
           <p className="text-white/80 font-body text-lg mb-10 drop-shadow">
-            Toute l&apos;entraide de votre commune, au même endroit.
+            Tout ce qui se passe dans votre commune, au même endroit.
           </p>
           <CitySearch />
         </div>
@@ -125,9 +125,9 @@ export default function HomePage() {
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { n: 1, bg: "bg-coral", shadow: "shadow-coral/30", title: "Publiez en une minute", desc: "Choisissez une thématique, décrivez votre besoin, indiquez votre rayon." },
+              { n: 1, bg: "bg-coral", shadow: "shadow-coral/30", title: "Publiez en une minute", desc: "Choisissez une thématique, décrivez votre besoin : votre commune voit votre annonce." },
               { n: 2, bg: "bg-mint", shadow: "shadow-mint/30", title: "Trouvez près de chez vous", desc: "Filtrez par thème, distance et disponibilité réelle." },
-              { n: 3, bg: "bg-lilac", shadow: "shadow-lilac/30", title: "Rencontrez en confiance", desc: "Messagerie intégrée, profil avec avis et historique." },
+              { n: 3, bg: "bg-lilac", shadow: "shadow-lilac/30", title: "Rencontrez en confiance", desc: "Identités réelles, questions publiques sous chaque annonce, signalement communautaire." },
             ].map((s) => (
               <div key={s.n} className="bg-white rounded-3xl p-8 shadow-md border border-neutral-100">
                 <div className={`w-12 h-12 rounded-2xl ${s.bg} shadow-lg ${s.shadow} text-white text-lg font-bold flex items-center justify-center -rotate-6 mb-5`}>
@@ -198,9 +198,9 @@ export default function HomePage() {
               </ul>
             </div>
             <div className="bg-white rounded-3xl p-8 shadow-xl shadow-coral/10 border-2 border-coral/20 md:-translate-y-3">
-              <h3 className="font-bold mb-5">🚀 Onsentraide</h3>
+              <h3 className="font-bold mb-5">🚀 Onseditout</h3>
               <ul className="space-y-3 text-sm font-semibold font-body">
-                {["Recherche et filtres par thème, distance", "Statut en temps réel", "Profil de confiance, avis", "Notifications ciblées"].map((t) => (
+                {["Filtres par thématique, page par commune", "Statut en temps réel : dispo, réservé, terminé", "Identités réelles et pros vérifiés (SIRET)", "Alertes officielles de votre mairie"].map((t) => (
                   <li key={t} className="flex gap-2 border-b border-ink/10 pb-3 last:border-0">
                     <span className="text-mint">✓</span> {t}
                   </li>

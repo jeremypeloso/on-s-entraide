@@ -23,18 +23,18 @@ const supabase = createClient(
   { auth: { persistSession: false } }
 );
 
-const DEMO_PASSWORD = "Demo-Onsentraide-2026!";
+const DEMO_PASSWORD = "Demo-Onseditout-2026!";
 
 const HABITANTS = [
-  { email: "demo.sophie@onsentraide.fr", name: "Sophie Martin" },
-  { email: "demo.karim@onsentraide.fr", name: "Karim Benali" },
-  { email: "demo.claire@onsentraide.fr", name: "Claire Dubois" },
-  { email: "demo.michel@onsentraide.fr", name: "Michel Lefèvre" },
-  { email: "demo.laura@onsentraide.fr", name: "Laura Petit" },
-  { email: "demo.thomas@onsentraide.fr", name: "Thomas Roux" },
+  { email: "demo.sophie@onseditout.fr", name: "Sophie Martin" },
+  { email: "demo.karim@onseditout.fr", name: "Karim Benali" },
+  { email: "demo.claire@onseditout.fr", name: "Claire Dubois" },
+  { email: "demo.michel@onseditout.fr", name: "Michel Lefèvre" },
+  { email: "demo.laura@onseditout.fr", name: "Laura Petit" },
+  { email: "demo.thomas@onseditout.fr", name: "Thomas Roux" },
 ];
 
-const PRO = { email: "demo.atelier.duval@onsentraide.fr", name: "Julien Duval" };
+const PRO = { email: "demo.atelier.duval@onseditout.fr", name: "Julien Duval" };
 
 async function getOrCreateUser(email, fullName) {
   const { data, error } = await supabase.auth.admin.createUser({
@@ -85,7 +85,7 @@ async function main() {
   // On récupère aussi les comptes pro pour purger leurs annonces sponsorisées
   const { data: allUsers } = await supabase.auth.admin.listUsers({ perPage: 1000 });
   const demoAuthIds = allUsers.users
-    .filter((u) => u.email?.startsWith("demo.") && u.email?.endsWith("@onsentraide.fr"))
+    .filter((u) => u.email?.startsWith("demo.") && (u.email?.endsWith("@onseditout.fr") || u.email?.endsWith("@onsentraide.fr")))
     .map((u) => u.id);
   await supabase.from("annonces").delete().in("author_id", demoAuthIds);
 
@@ -148,7 +148,75 @@ async function main() {
     },
   ]);
   if (alErr) throw new Error("Alertes: " + alErr.message);
-  console.log("✓ 3 alertes officielles (dont 1 événement)");
+  
+// ---------- Événements (agenda) ----------
+await supabase.from("evenements").delete().eq("commune_id", commune.id);
+const inDays = (d, h = 10) => { const x = new Date(); x.setDate(x.getDate() + d); x.setHours(h, 0, 0, 0); return x.toISOString(); };
+await supabase.from("evenements").insert([
+  { commune_id: commune.id, author_id: null, organisateur_type: "mairie", organisateur_nom: "Mairie de Limetz-Villez", titre: "Fête du village 2026", description: "Repas champêtre, jeux pour enfants, bal populaire en soirée. Buvette tenue par le comité des fêtes.", starts_at: inDays(12, 11), lieu: "Place de la Mairie" },
+  { commune_id: commune.id, author_id: null, organisateur_type: "mairie", organisateur_nom: "Mairie de Limetz-Villez", titre: "Réunion publique : aménagement de la rue des Vignes", description: "Présentation du projet de sécurisation et échanges avec les riverains.", starts_at: inDays(5, 19), lieu: "Salle des fêtes" },
+  { commune_id: commune.id, author_id: null, organisateur_type: "mairie", organisateur_nom: "Mairie de Limetz-Villez", titre: "Marché de producteurs locaux", description: "Fromages, légumes, miel et pain des producteurs du Vexin.", starts_at: inDays(2, 9), lieu: "Parvis de l'église" },
+]);
+console.log("✓ 3 événements dans l'agenda");
+
+// ---------- Associations et leurs événements ----------
+{
+  const assoUser = await getOrCreateUser("demo.comite.fetes@onseditout.fr", "Marie Fontaine");
+  const assoUser2 = await getOrCreateUser("demo.foot.limetz@onseditout.fr", "David Morin");
+  const assoUser3 = await getOrCreateUser("demo.ape.limetz@onseditout.fr", "Nathalie Costa");
+  await supabase.from("profiles").upsert([
+    { id: assoUser.id, full_name: "Marie Fontaine", commune_residence_id: commune.id },
+    { id: assoUser2.id, full_name: "David Morin", commune_residence_id: commune.id },
+    { id: assoUser3.id, full_name: "Nathalie Costa", commune_residence_id: commune.id },
+  ]);
+  await supabase.from("associations").delete().eq("commune_id", commune.id);
+  const { data: assos } = await supabase.from("associations").insert([
+    { user_id: assoUser.id, commune_id: commune.id, nom: "Comité des fêtes de Limetz-Villez", categorie: "fetes", rna: "W782001234", description: "Nous animons le village toute l'année : fête du village, chasse aux œufs, marché de Noël, feu de la Saint-Jean. Bénévoles bienvenus !", email: "comitedesfetes.limetz@gmail.com", is_verified: true },
+    { user_id: assoUser2.id, commune_id: commune.id, nom: "FC Limetz-Villez", categorie: "sport", rna: "W782005678", description: "Club de football amateur, école de foot dès 6 ans, équipe seniors en D3. Entraînements mercredi et vendredi au stade municipal.", telephone: "06 21 43 65 87", is_verified: true },
+    { user_id: assoUser3.id, commune_id: commune.id, nom: "APE de l'école des Tilleuls", categorie: "enfance", rna: "W782009012", description: "Association des parents d'élèves : kermesse, vente de sapins, financement des sorties scolaires.", email: "ape.tilleuls@gmail.com", is_verified: false },
+  ]).select();
+  const byNom = Object.fromEntries((assos ?? []).map((a) => [a.nom, a]));
+  const inD = (d, h = 10) => { const x = new Date(); x.setDate(x.getDate() + d); x.setHours(h, 0, 0, 0); return x.toISOString(); };
+  const ev = [];
+  const cf = byNom["Comité des fêtes de Limetz-Villez"];
+  const fc = byNom["FC Limetz-Villez"];
+  const ape = byNom["APE de l'école des Tilleuls"];
+  if (cf) ev.push({ commune_id: commune.id, author_id: cf.user_id, organisateur_type: "association", organisateur_nom: cf.nom, association_id: cf.id, titre: "Loto du comité des fêtes", description: "Nombreux lots : bons d'achat, électroménager, paniers garnis. Buvette et crêpes sur place. Ouverture des portes 19h.", starts_at: inD(9, 20), lieu: "Salle des fêtes" });
+  if (fc) ev.push({ commune_id: commune.id, author_id: fc.user_id, organisateur_type: "association", organisateur_nom: fc.nom, association_id: fc.id, titre: "Portes ouvertes école de foot", description: "Séance d'essai gratuite pour les 6-12 ans, inscriptions sur place.", starts_at: inD(3, 14), lieu: "Stade municipal" });
+  if (ape) ev.push({ commune_id: commune.id, author_id: ape.user_id, organisateur_type: "association", organisateur_nom: ape.nom, association_id: ape.id, titre: "Vide-grenier de l'APE", description: "Exposants 5 € le mètre, inscription par email. Restauration sur place.", starts_at: inD(20, 8), lieu: "Cour de l'école" });
+  if (ev.length) await supabase.from("evenements").insert(ev);
+  console.log(`✓ ${(assos ?? []).length} associations, ${ev.length} événements associatifs`);
+}
+
+// ---------- Avis clients sur les pros démo ----------
+{
+  const { data: prosList } = await supabase.from("pro_profiles").select("id, business_name").eq("base_commune_id", commune.id);
+  const byName = Object.fromEntries((prosList ?? []).map((p) => [p.business_name, p.id]));
+  const h = (i) => users[i % users.length].id;
+  const avis = [
+    ["L'Atelier Duval", 0, 5, "Cuisine posée en deux jours, finitions impeccables et chantier laissé propre. Je recommande sans hésiter."],
+    ["L'Atelier Duval", 1, 5, "Très à l'écoute, devis clair, respecté au centime."],
+    ["L'Atelier Duval", 2, 4, "Bon travail, un peu de retard sur la date de début mais prévenu à l'avance."],
+    ["Taxi du Vexin", 3, 5, "Ponctuel à 5h du matin pour Roissy, véhicule nickel."],
+    ["Taxi du Vexin", 4, 4, "Sérieux et sympathique. Tarif conventionné accepté sans souci."],
+    ["Plomberie Rivière", 0, 5, "Dépannage un dimanche soir en 40 minutes. Sauvé !"],
+    ["Plomberie Rivière", 5, 3, "Efficace mais tarif de déplacement un peu élevé."],
+    ["SF Élec", 1, 5, "Mise aux normes du tableau électrique, explications claires, propre."],
+    ["Les Jardins de Manon", 2, 5, "Massifs magnifiques, conseils précieux pour l'entretien."],
+    ["Au Four du Village", 3, 5, "La meilleure baguette tradition du secteur, sans discussion."],
+  ];
+  const rows = avis.filter(([n]) => byName[n]).map(([n, hi, rating, body]) => ({ pro_id: byName[n], author_id: h(hi), rating, body }));
+  if (rows.length) {
+    await supabase.from("pro_reviews").delete().in("pro_id", Object.values(byName));
+    await supabase.from("pro_reviews").insert(rows);
+    // Réponse du pro sur un avis
+    const { data: first } = await supabase.from("pro_reviews").select("id").eq("pro_id", byName["L'Atelier Duval"]).limit(1).single();
+    if (first) await supabase.from("pro_reviews").update({ pro_reply: "Merci beaucoup, c'était un plaisir. À bientôt pour la salle de bain !", replied_at: new Date().toISOString() }).eq("id", first.id);
+    console.log(`✓ ${rows.length} avis clients`);
+  }
+}
+
+console.log("✓ 3 alertes officielles (dont 1 événement)");
 
   // --- Pro : L'Atelier Duval ---
   const proUser = await getOrCreateUser(PRO.email, PRO.name);
@@ -197,7 +265,7 @@ async function main() {
   const PROS_EXTRA = [
     // PREMIUM (bandeau haut de page, avec L'Atelier Duval déjà premium)
     {
-      email: "demo.taxi.vexin@onsentraide.fr", name: "Patrick Morel",
+      email: "demo.taxi.vexin@onseditout.fr", name: "Patrick Morel",
       business: "Taxi du Vexin", siret: "79345612800019", plan: "premium", tel: "06 45 78 12 30",
       tagline: "Taxi conventionné : gares, aéroports, transport médical",
       description: "Transport toutes distances 7j/7. Conventionné CPAM pour les transports médicaux assis. Réservation par téléphone.",
@@ -208,7 +276,7 @@ async function main() {
       ],
     },
     {
-      email: "demo.boulangerie.four@onsentraide.fr", name: "Nadia Bensaïd",
+      email: "demo.boulangerie.four@onseditout.fr", name: "Nadia Bensaïd",
       business: "Au Four du Village", siret: "82217834500023", plan: "premium", tel: "01 30 42 15 62",
       tagline: "Boulangerie artisanale : pains spéciaux, commandes et livraison",
       description: "Pain au levain, viennoiseries maison, gâteaux sur commande. Livraison gratuite dans le village pour les personnes à mobilité réduite.",
@@ -219,7 +287,7 @@ async function main() {
     },
     // VISIBILITÉ (sidebar, avec SF Élec)
     {
-      email: "demo.elec.sonia@onsentraide.fr", name: "Sonia Ferreira",
+      email: "demo.elec.sonia@onseditout.fr", name: "Sonia Ferreira",
       business: "SF Élec", siret: "84329871600014", plan: "visibilite", tel: "06 78 90 12 34", mail: "sonia@sf-elec.fr",
       tagline: "Électricienne : dépannage, mise aux normes, bornes de recharge",
       description: "Dépannage rapide, remplacement de tableaux électriques, installation de bornes de recharge et interphones. Devis gratuit.",
@@ -230,7 +298,7 @@ async function main() {
       ],
     },
     {
-      email: "demo.plomberie.riviere@onsentraide.fr", name: "Marc Rivière",
+      email: "demo.plomberie.riviere@onseditout.fr", name: "Marc Rivière",
       business: "Plomberie Rivière", siret: "75412398700031", plan: "visibilite", tel: "06 11 22 33 44",
       tagline: "Plombier chauffagiste : fuites, chaudières, salles de bain",
       description: "Intervention rapide pour fuites et débouchages. Entretien de chaudières, rénovation de salles de bain clé en main.",
@@ -240,7 +308,7 @@ async function main() {
       ],
     },
     {
-      email: "demo.coiffure.dom@onsentraide.fr", name: "Émilie Vasseur",
+      email: "demo.coiffure.dom@onseditout.fr", name: "Émilie Vasseur",
       business: "Ciseaux à Domicile", siret: "88976234100012", plan: "visibilite", tel: "07 55 66 77 88",
       tagline: "Coiffeuse à domicile : coupes, couleurs, événements",
       description: "Je me déplace chez vous avec tout le matériel. Coupes homme, femme, enfant, couleurs et chignons de mariage.",
@@ -251,7 +319,7 @@ async function main() {
     },
     // ESSENTIEL (section sous les annonces, avec Les Jardins de Manon)
     {
-      email: "demo.jardins.manon@onsentraide.fr", name: "Manon Girard",
+      email: "demo.jardins.manon@onseditout.fr", name: "Manon Girard",
       business: "Les Jardins de Manon", siret: "91456782300021", plan: "essentiel", tel: "06 99 88 77 66",
       tagline: "Paysagiste : entretien, taille, création de massifs",
       description: "Entretien régulier de jardins, taille de haies et d'arbustes, création de massifs et potagers.",
@@ -261,7 +329,7 @@ async function main() {
       ],
     },
     {
-      email: "demo.soutien.hugo@onsentraide.fr", name: "Hugo Lambert",
+      email: "demo.soutien.hugo@onseditout.fr", name: "Hugo Lambert",
       business: "Soutien Scolaire Hugo", siret: "90123785600017", plan: "essentiel", mail: "hugo.soutien@gmail.com",
       tagline: "Cours particuliers : maths et physique, collège-lycée",
       description: "Étudiant en école d'ingénieur, je donne des cours de maths et physique du collège à la terminale. Premier cours d'essai offert.",
@@ -271,7 +339,7 @@ async function main() {
       ],
     },
     {
-      email: "demo.toilettage.wouaf@onsentraide.fr", name: "Céline Dupré",
+      email: "demo.toilettage.wouaf@onseditout.fr", name: "Céline Dupré",
       business: "Wouaf & Co", siret: "85634219800026", plan: "essentiel", tel: "06 33 44 55 66",
       tagline: "Toilettage canin à domicile, tous gabarits",
       description: "Toilettage complet à domicile dans mon camion aménagé : bain, coupe, griffes. Doux avec les chiens anxieux.",
@@ -337,7 +405,7 @@ async function main() {
   else console.log("✓ Vigilance : 4 membres, 2 signalements");
 
   // --- Compte agent mairie ---
-  const mairieUser = await getOrCreateUser("demo.mairie@onsentraide.fr", "Mairie de Limetz-Villez");
+  const mairieUser = await getOrCreateUser("demo.mairie@onseditout.fr", "Mairie de Limetz-Villez");
   await supabase.from("profiles").upsert({
     id: mairieUser.id,
     full_name: "Mairie de Limetz-Villez",
@@ -349,7 +417,7 @@ async function main() {
     role: "agent",
   });
   if (agErr) console.log("⚠️ Agent mairie:", agErr.message, "(table commune_agents créée ?)");
-  else console.log("✓ Compte agent mairie : demo.mairie@onsentraide.fr");
+  else console.log("✓ Compte agent mairie : demo.mairie@onseditout.fr");
 
   // --- Coordonnées mairie ---
   const { error: coErr } = await supabase.from("mairie_coordonnees").upsert({
@@ -364,7 +432,7 @@ async function main() {
   else console.log("✓ Coordonnées mairie renseignées");
 
   console.log(`\n🎉 Démo prête : http://localhost:3000/${commune.slug}`);
-  console.log(`   Connexion habitant démo : demo.sophie@onsentraide.fr / ${DEMO_PASSWORD}`);
+  console.log(`   Connexion habitant démo : demo.sophie@onseditout.fr / ${DEMO_PASSWORD}`);
 }
 
 main().catch((e) => {

@@ -3,6 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { uploadPhoto } from "@/lib/upload";
+import VerifiedBadge from "@/components/VerifiedBadge";
+import ProReviews from "@/components/ProReviews";
 import ZoneMap from "@/components/ZoneMap";
 
 type ProProfile = {
@@ -14,6 +17,7 @@ type ProProfile = {
   description: string | null;
   subscription_status: string;
   subscription_plan: string | null;
+  logo_url: string | null;
 };
 type Service = { id: string; label: string; price_from: number | null; price_note: string | null };
 type BaseCommune = { id: string; nom: string; code_postal: string | null; departement: string | null; lat: number | null; lng: number | null };
@@ -47,6 +51,7 @@ export default function EspaceProPage() {
   const [telephone, setTelephone] = useState("");
   const [emailPro, setEmailPro] = useState("");
   const [siteWeb, setSiteWeb] = useState("");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -161,6 +166,18 @@ export default function EspaceProPage() {
     setTimeout(() => setSaved(false), 3000);
   }
 
+  async function onLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) return;
+    setUploadingLogo(true);
+    const url = await uploadPhoto(file, "logos-pros");
+    if (url) {
+      await supabase.from("pro_profiles").update({ logo_url: url }).eq("id", userId);
+      setPro((p) => (p ? { ...p, logo_url: url } : p));
+    }
+    setUploadingLogo(false);
+  }
+
   async function choosePlan(planId: string) {
     // Paiement Stripe à venir : en phase de lancement, activation directe
     const { data, error } = await supabase
@@ -237,12 +254,27 @@ export default function EspaceProPage() {
         {/* En-tête */}
         <div className="bg-gradient-to-br from-orange-50 to-white border border-coral/20 rounded-3xl p-8">
           <p className="text-xs font-bold uppercase text-neutral-400 mb-1">Espace pro</p>
+          {pro && (
+            <label className="flex items-center gap-4 mb-4 cursor-pointer group w-fit">
+              {pro.logo_url ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={pro.logo_url} alt="" className="w-16 h-16 rounded-2xl object-contain bg-white border border-neutral-200 p-1" />
+              ) : (
+                <span className="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-neutral-300 group-hover:border-coral flex items-center justify-center text-2xl transition">🏷️</span>
+              )}
+              <span className="text-xs font-bold text-neutral-500 group-hover:text-coral transition">
+                {uploadingLogo ? "Envoi..." : pro.logo_url ? "Changer le logo" : "Ajouter votre logo"}
+                <span className="block text-[10px] font-semibold text-neutral-400">PNG ou JPG, fond blanc ou transparent, 5 Mo max</span>
+              </span>
+              <input type="file" accept="image/*" onChange={onLogoChange} className="hidden" />
+            </label>
+          )}
           <h1 className="text-2xl font-extrabold flex items-center gap-2 flex-wrap">
             {pro ? pro.business_name : "Activez votre profil professionnel"}
             {pro?.siret_verified ? (
-              <span className="text-[11px] bg-mint text-white px-2.5 py-1 rounded-full">✓ SIRET vérifié</span>
+              <VerifiedBadge size={20} title="SIRET vérifié" />
             ) : pro ? (
-              <span className="text-[11px] bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full">⏳ Vérification en cours</span>
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">⏳ Vérification en cours</span>
             ) : null}
           </h1>
           {pro && pro.subscription_status === "active" && pro.subscription_plan && (
@@ -408,6 +440,9 @@ export default function EspaceProPage() {
                 </button>
               </form>
             </div>
+
+            {/* Avis clients : lecture, réponse, signalement */}
+            <ProReviews proId={userId} proName={pro.business_name} />
 
             {/* Zone d'intervention */}
             <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-8">

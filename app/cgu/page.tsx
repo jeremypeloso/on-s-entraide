@@ -7,7 +7,7 @@ export default function CguPage() {
         <section>
           <h2 className="font-display font-bold text-lg text-ink mb-2">1. Objet</h2>
           <p>
-            onsentraide.fr est une plateforme d&apos;entraide entre habitants d&apos;une même commune :
+            onseditout.fr est la plateforme de vie locale des habitants d&apos;une même commune : entraide,
             dons et prêts d&apos;objets, services, transport, garde, alimentaire, alertes locales.
             L&apos;utilisation du site vaut acceptation des présentes conditions.
           </p>

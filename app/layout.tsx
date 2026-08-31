@@ -19,9 +19,9 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Onsentraide.fr — L'entraide de quartier, en mieux",
+  title: "Onseditout.fr — Tout ce qui se passe dans votre commune",
   description:
-    "Objets, services, transport, garde, alimentaire, alertes : toute l'entraide de votre commune au même endroit.",
+    "Objets, services, transport, garde, alimentaire, alertes : annonces, événements, pros et mairie : tout ce qui se passe dans votre commune, au même endroit.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

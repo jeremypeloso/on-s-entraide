@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 export const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = process.env.RESEND_FROM_EMAIL || "On s'entraide <bonjour@onsentraide.fr>";
+const FROM = process.env.RESEND_FROM_EMAIL || "On se dit tout <bonjour@onseditout.fr>";
 
 export async function sendWelcomeEmail(to: string, communeName: string) {
   return resend.emails.send({
@@ -11,7 +11,7 @@ export async function sendWelcomeEmail(to: string, communeName: string) {
     subject: `Bienvenue à ${communeName} 🎉`,
     html: `
       <div style="font-family:sans-serif; max-width:480px; margin:0 auto;">
-        <h1 style="color:#22223B;">Bienvenue sur On s'entraide !</h1>
+        <h1 style="color:#22223B;">Bienvenue sur On se dit tout !</h1>
         <p style="color:#5C5C72; line-height:1.6;">
           Votre commune de résidence est désormais <strong>${communeName}</strong>.
           Vous avez accès aux annonces locales, aux alertes de la mairie (si certifiée),
@@ -75,7 +75,7 @@ export async function sendCommuneCertifiedEmail(to: string, communeName: string)
   return resend.emails.send({
     from: FROM,
     to,
-    subject: `${communeName} est certifiée sur On s'entraide`,
+    subject: `${communeName} est certifiée sur On se dit tout`,
     html: `
       <div style="font-family:sans-serif; max-width:480px; margin:0 auto;">
         <p style="color:#22223B;">Votre abonnement mairie est actif.

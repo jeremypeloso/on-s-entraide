@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { uploadPhoto } from "@/lib/upload";
+import EvenementsManager from "@/components/EvenementsManager";
 
 type Commune = { id: string; nom: string; slug: string; is_certified: boolean };
 type Alerte = { id: string; title: string; body: string | null; starts_at: string | null; ends_at: string | null; created_at: string; photo_url: string | null };
@@ -330,6 +331,9 @@ export default function MairiePage() {
             </button>
           </form>
         </div>
+
+        {/* Événements : agenda de la commune */}
+        <EvenementsManager communeId={commune.id} communeNom={commune.nom} />
 
         {/* Coordonnées mairie */}
         <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-8">

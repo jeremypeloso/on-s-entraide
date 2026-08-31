@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     switch (action) {
       // ===== VUE D'ENSEMBLE =====
       case "stats": {
-        const [users, annonces, annoncesActives, pros, prosActifs, certifiees, signalements, contacts, comments] =
+        const [users, annonces, annoncesActives, pros, prosActifs, certifiees, signalements, contacts, comments, avisSignales, assosAttente] =
           await Promise.all([
             db.from("profiles").select("*", { count: "exact", head: true }),
             db.from("annonces").select("*", { count: "exact", head: true }),
@@ -41,11 +41,14 @@ export async function POST(request: Request) {
             db.from("annonce_signalements").select("*", { count: "exact", head: true }).eq("statut", "en_attente"),
             db.from("contact_messages").select("*", { count: "exact", head: true }).eq("traite", false),
             db.from("annonce_comments").select("*", { count: "exact", head: true }),
+            db.from("review_signalements").select("*", { count: "exact", head: true }).eq("statut", "en_attente"),
+            db.from("associations").select("*", { count: "exact", head: true }).eq("is_verified", false),
           ]);
         return NextResponse.json({
           users: users.count, annonces: annonces.count, annoncesActives: annoncesActives.count,
           pros: pros.count, prosActifs: prosActifs.count, certifiees: certifiees.count,
           signalements: signalements.count, contacts: contacts.count, comments: comments.count,
+          avisSignales: avisSignales.count, assosAttente: assosAttente.count,
         });
       }
 
@@ -66,6 +69,25 @@ export async function POST(request: Request) {
       }
       case "signalement_rejeter": {
         await db.from("annonce_signalements").update({ statut: "rejete" }).eq("id", payload.id);
+        return NextResponse.json({ ok: true });
+      }
+
+      // ===== AVIS SIGNALÉS =====
+      case "avis_signales": {
+        const { data } = await db
+          .from("review_signalements")
+          .select("*, pro_reviews(id, rating, body, created_at, profiles(full_name)), pro:pro_id(business_name)")
+          .eq("statut", "en_attente")
+          .order("created_at", { ascending: false });
+        return NextResponse.json({ data });
+      }
+      case "avis_supprimer": {
+        await db.from("pro_reviews").delete().eq("id", payload.reviewId);
+        await db.from("review_signalements").update({ statut: "traite" }).eq("review_id", payload.reviewId);
+        return NextResponse.json({ ok: true });
+      }
+      case "avis_signalement_rejeter": {
+        await db.from("review_signalements").update({ statut: "rejete" }).eq("id", payload.id);
         return NextResponse.json({ ok: true });
       }
 
@@ -109,6 +131,24 @@ export async function POST(request: Request) {
       }
       case "pro_set_status": {
         await db.from("pro_profiles").update({ subscription_status: payload.value }).eq("id", payload.id);
+        return NextResponse.json({ ok: true });
+      }
+
+      // ===== ASSOCIATIONS =====
+      case "assos": {
+        const { data } = await db
+          .from("associations")
+          .select("id, nom, rna, categorie, is_verified, email, telephone, created_at, communes(nom), profiles:user_id(full_name)")
+          .order("is_verified", { ascending: true })
+          .order("created_at", { ascending: false });
+        return NextResponse.json({ data });
+      }
+      case "asso_toggle_verif": {
+        await db.from("associations").update({ is_verified: payload.value }).eq("id", payload.id);
+        return NextResponse.json({ ok: true });
+      }
+      case "asso_supprimer": {
+        await db.from("associations").delete().eq("id", payload.id);
         return NextResponse.json({ ok: true });
       }
 

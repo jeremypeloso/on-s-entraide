@@ -19,6 +19,7 @@ export default function ComptePage() {
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
   const [isAgent, setIsAgent] = useState(false);
   const [isPro, setIsPro] = useState(false);
+  const [isAsso, setIsAsso] = useState(false);
 
   // --- Recherche commune de résidence ---
   const [query, setQuery] = useState("");
@@ -72,6 +73,9 @@ export default function ComptePage() {
         .limit(1);
       setIsPro(!!proProfile && proProfile.length > 0);
 
+      const { data: assoRow } = await supabase.from("associations").select("id").eq("user_id", user.id).limit(1);
+      setIsAsso(!!assoRow && assoRow.length > 0);
+
       setLoading(false);
     }
     load();
@@ -109,10 +113,16 @@ export default function ComptePage() {
     const res = await fetch("/api/residence", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ commune_id: c.id }),
+      body: JSON.stringify({ communeId: c.id }),
     });
     setSavingResidence(false);
-    if (res.ok) setResidence(c);
+    if (res.ok) {
+      setResidence(c);
+      try { sessionStorage.removeItem("ose_commune"); } catch {}
+    } else {
+      const j = await res.json().catch(() => ({}));
+      window.alert("Enregistrement impossible : " + (j.error ?? res.status));
+    }
   }
 
   async function supprimerAnnonce(id: string) {
@@ -329,7 +339,17 @@ export default function ComptePage() {
             <p className="text-sm text-neutral-500 font-body mt-1">
               {isPro
                 ? "Profil, services, abonnement et communes couvertes."
-                : "Activez votre profil pro et soyez visible sur votre zone d&apos;intervention."}
+                : "Activez votre profil pro et soyez visible sur votre zone d'intervention."}
+            </p>
+          </a>
+          <a
+            href="/association/espace"
+            className="bg-gradient-to-br from-lilac/10 to-white border-2 border-lilac/20 rounded-3xl p-6 hover:border-lilac/50 hover:shadow-lg transition group"
+          >
+            <p className="text-2xl mb-2">🎭</p>
+            <h3 className="font-bold group-hover:text-lilac transition">{isAsso ? "Gérer mon association" : "Vous dirigez une association ?"}</h3>
+            <p className="text-sm text-neutral-500 font-body mt-1">
+              {isAsso ? "Page, événements et coordonnées." : "Créez sa page gratuitement et publiez vos événements dans l'agenda."}
             </p>
           </a>
           <a

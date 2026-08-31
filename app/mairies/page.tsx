@@ -99,7 +99,7 @@ const FAQ = [
   },
   {
     q: "Et par rapport à Panneau Pocket ou IntraMuros ?",
-    a: "Ces outils diffusent l'information descendante. Onsentraide y ajoute la vie locale : vos habitants y sont déjà pour s'entraider entre voisins, vos alertes s'insèrent dans un usage quotidien plutôt que dans une application dédiée ouverte occasionnellement.",
+    a: "Ces outils diffusent l'information descendante. Onseditout y ajoute la vie locale : vos habitants y sont déjà pour s'entraider entre voisins, vos alertes s'insèrent dans un usage quotidien plutôt que dans une application dédiée ouverte occasionnellement.",
   },
 ];
 
@@ -118,7 +118,7 @@ export default function MairiesPage() {
             Informez vos habitants là où ils s&apos;entraident déjà
           </h1>
           <p className="text-white/85 font-body text-lg max-w-xl mx-auto mb-8">
-            La page de votre commune existe déjà sur onsentraide.fr. Prenez-en les commandes :
+            La page de votre commune existe déjà sur onseditout.fr. Prenez-en les commandes :
             publiez vos alertes officielles avec le badge « Commune certifiée ✓ ».
           </p>
           <a
