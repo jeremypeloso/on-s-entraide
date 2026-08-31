@@ -1,15 +1,7 @@
 import CitySearch from "@/components/CitySearch";
+import { createClient } from "@/lib/supabase/server";
 
-const CARDS = [
-  { emoji: "🚗", cat: "Transport", color: "sky", title: "Covoiturage vers Vernon, jeudi 8h", desc: "2 places libres, retour possible le soir même.", ville: "Limetz-Villez", meta: "il y a 4 min" },
-  { emoji: "🔧", cat: "Objets", color: "coral", title: "Perceuse à prêter ce week-end", desc: "Disponible samedi et dimanche, à récupérer sur place.", ville: "Bonnières-sur-Seine", meta: "il y a 12 min" },
-  { emoji: "🐱", cat: "Garde", color: "sun", title: "Recherche gardien de chat, 5 jours en août", desc: "Deux visites par jour, nourriture fournie.", ville: "Vernon", meta: "il y a 26 min" },
-  { emoji: "🪛", cat: "Services", color: "mint", title: "Coup de main pour monter une étagère", desc: "Outillage sur place, une heure suffit.", ville: "Vétheuil", meta: "il y a 1 h" },
-  { emoji: "🍅", cat: "Alimentaire", color: "pink", title: "Surplus de tomates du jardin, à donner", desc: "Environ 3 kg, récupération ce soir avant 20h.", ville: "Limetz-Villez", meta: "il y a 2 h" },
-  { emoji: "📢", cat: "Alertes", color: "lilac", title: "Coupure d'eau rue des Tilleuls demain", desc: "De 9h à 13h, information officielle de la mairie.", ville: "Limetz-Villez", meta: "il y a 3 h" },
-  { emoji: "🚗", cat: "Transport", color: "sky", title: "Trajet gare de Mantes, chaque matin", desc: "Départ 7h30, place pour un passager régulier.", ville: "Freneuse", meta: "il y a 4 h" },
-  { emoji: "🐾", cat: "Garde", color: "sun", title: "Promenade de chien cette semaine", desc: "Disponible en fin de journée, secteur centre.", ville: "Bonnières-sur-Seine", meta: "il y a 5 h" },
-];
+type Card = { id: string; emoji: string; cat: string; color: string; title: string; desc: string; ville: string; slug: string; meta: string; hex: string | null };
 
 const CATEGORIES = [
   { emoji: "🔧", label: "Objets", desc: "Dons, prêts, échanges", dot: "bg-coral" },
@@ -43,10 +35,12 @@ function Eyebrow({ children, light = false }: { children: React.ReactNode; light
   );
 }
 
-function AnnonceCard({ c }: { c: (typeof CARDS)[number] }) {
+function AnnonceCard({ c }: { c: Card }) {
   return (
-    <div
-      className={`bg-white rounded-3xl p-5 w-[300px] h-[240px] flex-shrink-0 flex flex-col shadow-lg shadow-ink/5 border border-neutral-100 border-t-4 ${colorMap[c.color]}`}
+    <a
+      href={`/annonce/${c.id}`}
+      className={`bg-white rounded-3xl p-5 w-[300px] h-[240px] flex-shrink-0 flex flex-col shadow-lg shadow-ink/5 border border-neutral-100 border-t-4 hover:shadow-xl transition ${colorMap[c.color] ?? ""}`}
+      style={c.hex ? { borderTopColor: c.hex, color: c.hex } : undefined}
     >
       <div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-lg mb-3">
         {c.emoji}
@@ -58,11 +52,40 @@ function AnnonceCard({ c }: { c: (typeof CARDS)[number] }) {
         <span>📍 {c.ville}</span>
         <span>{c.meta}</span>
       </div>
-    </div>
+    </a>
   );
 }
 
-export default function HomePage() {
+function timeAgo(dateStr: string) {
+  const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+  if (mins < 60) return `il y a ${Math.max(mins, 1)} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `il y a ${hours} h`;
+  return `il y a ${Math.floor(hours / 24)} j`;
+}
+
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: recentes } = await supabase
+    .from("annonces")
+    .select("id, title, description, created_at, statut, categories(label, emoji, color_hex), communes(nom, slug)")
+    .eq("statut", "disponible")
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  const CARDS: Card[] = (recentes ?? []).map((a: any) => ({
+    id: a.id,
+    emoji: a.categories?.emoji ?? "📌",
+    cat: a.categories?.label ?? "Annonce",
+    color: "",
+    hex: a.categories?.color_hex ?? null,
+    title: a.title,
+    desc: a.description ?? "",
+    ville: a.communes?.nom ?? "",
+    slug: a.communes?.slug ?? "",
+    meta: timeAgo(a.created_at),
+  }));
+
   return (
     <main className="font-display">
 
@@ -93,7 +116,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ============ DERNIÈRES ANNONCES — bande crème, carrousel défilant ============ */}
+      {/* ============ DERNIÈRES ANNONCES — vraies annonces, masqué s'il y en a trop peu ============ */}
+      {CARDS.length >= 4 && (
       <section id="annonces" className="bg-orange-50 py-16 overflow-hidden border-b border-orange-100">
         <div className="max-w-5xl mx-auto px-6 mb-10 text-center">
           <Eyebrow>🔥 En ce moment</Eyebrow>
@@ -112,6 +136,7 @@ export default function HomePage() {
           <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-orange-50 to-transparent" />
         </div>
       </section>
+      )}
 
       {/* ============ COMMENT ÇA MARCHE — bande blanche épurée ============ */}
       <section className="bg-white py-24">
