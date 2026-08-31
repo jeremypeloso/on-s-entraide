@@ -168,9 +168,9 @@ export default function CommuneTabs({
       <div className="bg-gradient-to-br from-mint/20 to-sky/20 border-b border-neutral-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-4">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full lg:w-auto">
               <span className="text-4xl">🏡</span>
-              <div>
+              <div className="min-w-0">
                 <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight flex items-center gap-2">
                   {commune.nom}
                   {commune.is_certified && <VerifiedBadge color="#4D8DFF" title="Commune certifiée" size={20} />}
@@ -179,6 +179,29 @@ export default function CommuneTabs({
                   {commune.departement} · {commune.population ? `${commune.population.toLocaleString("fr-FR")} habitants` : commune.code_postal}
                 </p>
               </div>
+          {commune.is_certified && coordonnees && (coordonnees.telephone || coordonnees.email || coordonnees.adresse) && (
+            <div className="flex items-center gap-2 ml-auto lg:hidden">
+              {coordonnees.telephone && (
+                <a href={`tel:${coordonnees.telephone.replace(/\s/g, "")}`} aria-label="Appeler la mairie"
+                  className="w-9 h-9 rounded-full bg-white border border-sky/30 shadow-sm flex items-center justify-center hover:bg-sky/10 transition">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4D8DFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" /></svg>
+                </a>
+              )}
+              {coordonnees.email && (
+                <a href={`mailto:${coordonnees.email}`} aria-label="Écrire à la mairie"
+                  className="w-9 h-9 rounded-full bg-white border border-sky/30 shadow-sm flex items-center justify-center hover:bg-sky/10 transition">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4D8DFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 7L2 7" /></svg>
+                </a>
+              )}
+              {coordonnees.adresse && (
+                <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`Mairie, ${coordonnees.adresse}, ${commune.nom}`)}`}
+                  target="_blank" rel="noopener noreferrer" aria-label="Itinéraire vers la mairie"
+                  className="w-9 h-9 rounded-full bg-white border border-sky/30 shadow-sm flex items-center justify-center hover:bg-sky/10 transition">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4D8DFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
+                </a>
+              )}
+            </div>
+          )}
             </div>
             <div className="flex flex-wrap gap-2 sm:ml-auto text-[12px] font-bold">
               <span className="bg-white/80 rounded-full px-3.5 py-1.5">📋 {annonces.length} annonce{annonces.length > 1 ? "s" : ""}</span>
@@ -186,32 +209,6 @@ export default function CommuneTabs({
               {allPros.length > 0 && <span className="bg-white/80 rounded-full px-3.5 py-1.5">💼 {allPros.length} pro{allPros.length > 1 ? "s" : ""}</span>}
             </div>
           </div>
-
-          {/* Accès rapides mairie (mobile et tablette) */}
-          {commune.is_certified && coordonnees && (coordonnees.telephone || coordonnees.email || coordonnees.adresse) && (
-            <div className="flex items-center gap-2 mt-4 lg:hidden">
-              <span className="text-[11px] font-bold text-sky mr-1">🏛️ Mairie</span>
-              {coordonnees.telephone && (
-                <a href={`tel:${coordonnees.telephone.replace(/\s/g, "")}`} aria-label="Appeler la mairie"
-                  className="w-10 h-10 rounded-full bg-white border border-sky/30 shadow-sm flex items-center justify-center hover:bg-sky/10 transition">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4D8DFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" /></svg>
-                </a>
-              )}
-              {coordonnees.email && (
-                <a href={`mailto:${coordonnees.email}`} aria-label="Écrire à la mairie"
-                  className="w-10 h-10 rounded-full bg-white border border-sky/30 shadow-sm flex items-center justify-center hover:bg-sky/10 transition">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4D8DFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 7L2 7" /></svg>
-                </a>
-              )}
-              {coordonnees.adresse && (
-                <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`Mairie, ${coordonnees.adresse}, ${commune.nom}`)}`}
-                  target="_blank" rel="noopener noreferrer" aria-label="Itinéraire vers la mairie"
-                  className="w-10 h-10 rounded-full bg-white border border-sky/30 shadow-sm flex items-center justify-center hover:bg-sky/10 transition">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4D8DFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
-                </a>
-              )}
-            </div>
-          )}
 
           {/* Recherche */}
           <div className="relative max-w-xl mt-4">
