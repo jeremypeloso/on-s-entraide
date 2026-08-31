@@ -67,7 +67,7 @@ export default function HomePage() {
     <main className="font-display">
 
       {/* ============ HERO — photo de village français + titre + recherche ============ */}
-      <section className="relative overflow-hidden">
+      <section className="relative">
         {/* Photo de fond : petit village français (Unsplash, libre d'utilisation) */}
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -214,8 +214,10 @@ export default function HomePage() {
       {/* ============ CTA FINAL — bande dégradée ============ */}
       <section className="bg-white pt-24 pb-20">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="relative overflow-hidden bg-gradient-to-br from-lilac to-pink rounded-[36px] px-10 py-20 text-center">
-            <div className="blob w-64 h-64 bg-sun -top-20 -left-10 opacity-40" />
+          <div className="relative bg-gradient-to-br from-lilac to-pink rounded-[36px] px-10 py-20 text-center">
+            <div className="absolute inset-0 overflow-hidden rounded-[36px] pointer-events-none">
+              <div className="blob w-64 h-64 bg-sun -top-20 -left-10 opacity-40" />
+            </div>
             <div className="relative z-10">
               <h2 className="text-white text-3xl md:text-5xl font-bold mb-4">Votre quartier vous attend 🏡</h2>
               <p className="text-white/90 mb-10 font-body text-lg">

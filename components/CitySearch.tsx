@@ -125,7 +125,7 @@ export default function CitySearch({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <div ref={wrapperRef} className={`relative text-left ${compact ? "w-full max-w-sm" : "max-w-xl mx-auto"}`}>
+    <div ref={wrapperRef} className={`relative z-40 text-left ${compact ? "w-full max-w-sm" : "max-w-xl mx-auto"}`}>
       <div
         className={`flex items-center gap-2 rounded-full transition ${
           compact
