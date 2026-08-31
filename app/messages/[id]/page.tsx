@@ -84,9 +84,11 @@ export default function ConversationPage({ params }: { params: Promise<{ id: str
           )}
           <div className="min-w-0">
             <p className="font-bold truncate">{other?.full_name ?? "Un habitant"}</p>
-            {conv?.annonces?.title && (
+            {conv?.annonces?.title ? (
               <a href={`/annonce/${conv.annonces.id}`} className="text-[11px] font-bold text-coral-dark hover:underline truncate block">📋 {conv.annonces.title}</a>
-            )}
+            ) : conv && !conv.annonce_id ? (
+              <p className="text-[11px] font-bold text-ink/60">🛡️ Support On se dit tout</p>
+            ) : null}
           </div>
         </div>
 

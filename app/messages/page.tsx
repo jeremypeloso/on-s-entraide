@@ -76,7 +76,7 @@ export default function MessagesPage() {
                     <p className={`text-sm truncate ${c.unread ? "font-extrabold" : "font-bold"}`}>{c.other?.full_name ?? "Un habitant"}</p>
                     {c.lastMsg && <span className="text-[11px] font-bold text-neutral-300 flex-shrink-0">{timeAgo(c.lastMsg.created_at)}</span>}
                   </div>
-                  {c.annonces?.title && <p className="text-[11px] font-bold text-coral-dark truncate">📋 {c.annonces.title}</p>}
+                  {c.annonces?.title ? <p className="text-[11px] font-bold text-coral-dark truncate">📋 {c.annonces.title}</p> : <p className="text-[11px] font-bold text-ink/60">🛡️ Support On se dit tout</p>}
                   {c.lastMsg && (
                     <p className={`text-xs truncate font-body ${c.unread ? "text-ink font-semibold" : "text-neutral-500"}`}>
                       {c.lastMsg.sender_id === userId ? "Vous : " : ""}{c.lastMsg.body}

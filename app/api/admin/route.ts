@@ -282,6 +282,45 @@ export async function POST(request: Request) {
         await db.from("contact_messages").update({ traite: payload.value ?? true }).eq("id", payload.id);
         return NextResponse.json({ ok: true });
       }
+      case "contact_repondre": {
+        // Réponse via la messagerie interne : l'expéditeur doit avoir un compte (recherche par email)
+        const { data: msg } = await db.from("contact_messages").select("*").eq("id", payload.id).single();
+        if (!msg) return NextResponse.json({ error: "Message introuvable" }, { status: 404 });
+        const body = String(payload.body ?? "").trim();
+        if (body.length < 2) return NextResponse.json({ error: "Réponse vide" }, { status: 400 });
+
+        let userId: string | null = null;
+        let page = 1;
+        while (!userId) {
+          const { data: list } = await db.auth.admin.listUsers({ page, perPage: 1000 });
+          const found = list.users.find((u) => u.email?.toLowerCase() === msg.email.toLowerCase());
+          if (found) userId = found.id;
+          if (list.users.length < 1000) break;
+          page++;
+        }
+        if (!userId) return NextResponse.json({ ok: false, noAccount: true });
+
+        // Conversation "support" (sans annonce) entre l'admin et l'utilisateur
+        const [pa, pb] = [admin.id, userId].sort();
+        const { data: existing } = await db.from("conversations").select("id")
+          .is("annonce_id", null).eq("participant_a", pa).eq("participant_b", pb).maybeSingle();
+        let convId = existing?.id;
+        if (!convId) {
+          const { data: created, error } = await db.from("conversations")
+            .insert({ annonce_id: null, participant_a: pa, participant_b: pb }).select("id").single();
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+          convId = created.id;
+        }
+        await db.from("messages").insert({ conversation_id: convId, sender_id: admin.id, body });
+        await db.from("conversations").update({ last_message_at: new Date().toISOString(), last_notified_at: new Date().toISOString() }).eq("id", convId);
+        await db.from("contact_messages").update({ traite: true }).eq("id", payload.id);
+
+        try {
+          await sendNewMessageEmail(msg.email, "L'équipe On se dit tout", "", `https://onseditout.fr/messages/${convId}`);
+        } catch (e) { console.error("Email réponse contact :", e); }
+
+        return NextResponse.json({ ok: true, conversationId: convId });
+      }
       case "contact_supprimer": {
         await db.from("contact_messages").delete().eq("id", payload.id);
         return NextResponse.json({ ok: true });

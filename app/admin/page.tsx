@@ -43,6 +43,9 @@ export default function AdminPage() {
   const [emailTest, setEmailTest] = useState<any>(null);
   const [stripeCheck, setStripeCheck] = useState<any>(null);
   const [contactView, setContactView] = useState<"a_traiter" | "archives">("a_traiter");
+  const [replyFor, setReplyFor] = useState<string | null>(null);
+  const [replyBody, setReplyBody] = useState("");
+  const [replyResult, setReplyResult] = useState<Record<string, string>>({});
   const [stripeChecking, setStripeChecking] = useState(false);
   const [emailTesting, setEmailTesting] = useState(false);
 
@@ -560,12 +563,12 @@ export default function AdminPage() {
                       <p className="text-[11px] font-bold text-neutral-300 mt-2">{new Date(m.created_at).toLocaleString("fr-FR")}</p>
                     </div>
                     <div className="flex flex-wrap gap-2 flex-shrink-0">
-                      <a
-                        href={`mailto:${m.email}?subject=${encodeURIComponent(`Re: votre message à On se dit tout (${m.sujet})`)}&body=${encodeURIComponent(`Bonjour ${m.nom ?? ""},\n\n\n\n---\nVotre message :\n${m.message}`)}`}
+                      <button
+                        onClick={() => { setReplyFor(replyFor === m.id ? null : m.id); setReplyBody(""); }}
                         className="text-xs font-bold px-4 py-2 rounded-full bg-ink text-white hover:bg-ink/85 transition"
                       >
-                        ✉️ Répondre
-                      </a>
+                        💬 Répondre
+                      </button>
                       <button
                         onClick={() => act("contact_traiter", { id: m.id, value: !m.traite }, m.traite ? "Message remis à traiter" : "Message archivé")}
                         className="text-xs font-bold px-4 py-2 rounded-full border border-neutral-200 hover:border-mint hover:text-mint transition"
@@ -580,6 +583,40 @@ export default function AdminPage() {
                       </button>
                     </div>
                   </div>
+
+                  {replyFor === m.id && (
+                    <div className="mt-4 border-t border-neutral-100 pt-4">
+                      <textarea
+                        value={replyBody}
+                        onChange={(e) => setReplyBody(e.target.value)}
+                        rows={4}
+                        maxLength={2000}
+                        placeholder={`Bonjour ${m.nom ?? ""},\n\n`}
+                        className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-ink transition font-body resize-none"
+                      />
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <button
+                          onClick={async () => {
+                            const r = await api("contact_repondre", { id: m.id, body: replyBody });
+                            if (r.ok) { setReplyResult((x) => ({ ...x, [m.id]: "sent" })); setReplyFor(null); setFeedback("✓ Réponse envoyée dans la messagerie, l'utilisateur est prévenu par email"); setTimeout(() => setFeedback(null), 4000); load(tab); }
+                            else if (r.noAccount) setReplyResult((x) => ({ ...x, [m.id]: "noAccount" }));
+                            else setFeedback(`⚠️ ${r.error}`);
+                          }}
+                          disabled={replyBody.trim().length < 2}
+                          className="text-xs font-bold px-4 py-2 rounded-full bg-coral text-white hover:bg-coral-dark transition disabled:opacity-40"
+                        >
+                          Envoyer via la messagerie
+                        </button>
+                        <button onClick={() => setReplyFor(null)} className="text-xs font-bold text-neutral-400 px-2">Annuler</button>
+                      </div>
+                      {replyResult[m.id] === "noAccount" && (
+                        <p className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3">
+                          Cet expéditeur n&apos;a pas de compte sur le site : la messagerie interne est impossible.{" "}
+                          <a href={`mailto:${m.email}?subject=${encodeURIComponent(`Re: votre message à On se dit tout (${m.sujet})`)}&body=${encodeURIComponent(replyBody)}`} className="underline">Répondre par email →</a>
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
