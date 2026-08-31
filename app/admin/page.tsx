@@ -96,7 +96,7 @@ export default function AdminPage() {
         </div>
 
         {/* Onglets */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-1">
+        <div className="flex flex-wrap gap-2 mb-6">
           {TABS.map((t) => (
             <button
               key={t.id}
