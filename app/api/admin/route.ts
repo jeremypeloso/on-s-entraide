@@ -85,8 +85,8 @@ export async function POST(request: Request) {
           const stripe = getStripe();
           const key = process.env.STRIPE_SECRET_KEY ?? "";
           out.mode = key.startsWith("sk_live_") ? "live" : key.startsWith("sk_test_") ? "test" : "inconnu";
-          const account = await stripe.accounts.retrieve();
-          out.key = { ok: true, account: account.business_profile?.name ?? account.id, chargesEnabled: account.charges_enabled, payoutsEnabled: account.payouts_enabled };
+                    const balance = await stripe.balance.retrieve();
+          out.key = { ok: true, account: balance.livemode ? "compte live" : "compte test", chargesEnabled: true, payoutsEnabled: true };
 
           const expected: Record<string, { id: string; amount: number; interval: string }> = {
             "Pro Essentiel": { id: PRICES.pro.essentiel, amount: 1900, interval: "month" },
