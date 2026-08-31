@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const SUJETS = [
@@ -19,6 +19,11 @@ export default function ContactPage() {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const s = new URLSearchParams(window.location.search).get("sujet");
+    if (s && SUJETS.some((x) => x.id === s)) setSujet(s);
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

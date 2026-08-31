@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Tab = "stats" | "moderation" | "avis" | "annonces" | "users" | "pros" | "assos" | "mairies" | "contacts";
+type Tab = "stats" | "moderation" | "avis" | "annonces" | "users" | "pros" | "assos" | "mairies" | "contacts" | "reglages";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "stats", label: "📊 Vue d'ensemble" },
@@ -16,6 +16,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "assos", label: "🎭 Associations" },
   { id: "mairies", label: "🏛️ Mairies" },
   { id: "contacts", label: "📬 Messages" },
+  { id: "reglages", label: "⚙️ Réglages" },
 ];
 
 async function api(action: string, payload?: any) {
@@ -38,6 +39,7 @@ export default function AdminPage() {
   const [agentEmail, setAgentEmail] = useState("");
   const [agentSlug, setAgentSlug] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [maintMsg, setMaintMsg] = useState("");
 
   // Contrôle d'accès
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function AdminPage() {
     setLoading(true);
     const actionMap: Record<Tab, string> = {
       stats: "stats", moderation: "signalements", avis: "avis_signales", annonces: "annonces",
-      users: "users", pros: "pros", assos: "assos", mairies: "communes_certifiees", contacts: "contacts",
+      users: "users", pros: "pros", assos: "assos", mairies: "communes_certifiees", contacts: "contacts", reglages: "settings",
     };
     const res = await api(actionMap[t], extra);
     setData(res);
@@ -343,7 +345,8 @@ export default function AdminPage() {
           <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-white rounded-2xl border border-neutral-200 p-5">
-                <h3 className="font-bold text-sm mb-3">Certifier / retirer une commune (par slug)</h3>
+                <h3 className="font-bold text-sm mb-1">Certifier / retirer une commune (par slug)</h3>
+                <p className="text-[11px] text-neutral-400 font-body font-semibold mb-3">Pour les mairies payant par mandat administratif. Celles payant par carte sont certifiées automatiquement par Stripe.</p>
                 <div className="flex gap-2">
                   <input
                     value={certifSlug}
@@ -413,6 +416,51 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* ===== RÉGLAGES ===== */}
+        {!loading && tab === "reglages" && data?.data && (() => {
+          const m = data.data.maintenance ?? { enabled: false, message: "" };
+          return (
+            <div className="space-y-4 max-w-2xl">
+              <div className={`rounded-2xl border p-6 ${m.enabled ? "bg-red-50 border-red-200" : "bg-white border-neutral-200"}`}>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="font-bold text-lg">🛠️ Mode maintenance</h3>
+                    <p className="text-sm text-neutral-500 font-body mt-1">
+                      Quand il est actif, tous les visiteurs voient une page d&apos;attente. Les administrateurs continuent d&apos;accéder au site normalement. Prise d&apos;effet sous 30 secondes.
+                    </p>
+                    <p className={`text-sm font-bold mt-3 ${m.enabled ? "text-red-600" : "text-mint"}`}>
+                      {m.enabled ? "● Maintenance ACTIVE — le site est fermé au public" : "● Site en ligne"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => act("set_maintenance", { enabled: !m.enabled, message: maintMsg || m.message }, m.enabled ? "Site remis en ligne" : "Maintenance activée")}
+                    className={`flex-shrink-0 text-sm font-bold px-5 py-3 rounded-full transition ${m.enabled ? "bg-mint text-white hover:bg-mint/90" : "bg-red-500 text-white hover:bg-red-600"}`}
+                  >
+                    {m.enabled ? "Remettre en ligne" : "Activer la maintenance"}
+                  </button>
+                </div>
+                <div className="mt-5">
+                  <label className="block text-xs font-bold text-neutral-500 mb-1.5">Message affiché aux visiteurs</label>
+                  <textarea
+                    defaultValue={m.message}
+                    onChange={(e) => setMaintMsg(e.target.value)}
+                    maxLength={300}
+                    rows={3}
+                    placeholder="Nous améliorons le site pour vous. Revenez dans quelques instants !"
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-ink transition font-body resize-none"
+                  />
+                  <button
+                    onClick={() => act("set_maintenance", { enabled: m.enabled, message: maintMsg || m.message }, "Message enregistré")}
+                    className="mt-2 text-xs font-bold px-4 py-2 rounded-full border border-neutral-200 hover:border-ink transition"
+                  >
+                    Enregistrer le message
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ===== MESSAGES CONTACT ===== */}
         {!loading && tab === "contacts" && data?.data && (

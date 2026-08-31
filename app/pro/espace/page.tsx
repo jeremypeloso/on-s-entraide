@@ -18,6 +18,8 @@ type ProProfile = {
   subscription_status: string;
   subscription_plan: string | null;
   logo_url: string | null;
+  stripe_subscription_id?: string | null;
+  current_period_end?: string | null;
 };
 type Service = { id: string; label: string; price_from: number | null; price_note: string | null };
 type BaseCommune = { id: string; nom: string; code_postal: string | null; departement: string | null; lat: number | null; lng: number | null };
@@ -65,6 +67,14 @@ export default function EspaceProPage() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<CommuneSug[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [checkoutMsg, setCheckoutMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("checkout");
+    if (p === "success") setCheckoutMsg("✓ Paiement validé ! Votre abonnement s'active dans quelques secondes.");
+    if (p === "cancel") setCheckoutMsg("Paiement annulé, aucun prélèvement effectué.");
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -178,18 +188,29 @@ export default function EspaceProPage() {
     setUploadingLogo(false);
   }
 
+  const [paying, setPaying] = useState<string | null>(null);
+
   async function choosePlan(planId: string) {
-    // Paiement Stripe à venir : en phase de lancement, activation directe
-    const { data, error } = await supabase
-      .from("pro_profiles")
-      .update({ subscription_plan: planId, subscription_status: "active" })
-      .eq("id", userId)
-      .select()
-      .single();
-    if (!error) {
-      setPro(data);
-      await refreshZone();
-    }
+    // Paiement sécurisé via Stripe Checkout ; l'activation se fait au retour (webhook)
+    setPaying(planId);
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "pro", plan: planId }),
+    });
+    const j = await res.json();
+    setPaying(null);
+    if (j.url) window.location.href = j.url;
+    else window.alert(j.error ?? "Paiement indisponible pour le moment.");
+  }
+
+  async function openPortal() {
+    const res = await fetch("/api/stripe/portal", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ returnPath: "/pro/espace" }),
+    });
+    const j = await res.json();
+    if (j.url) window.location.href = j.url;
+    else window.alert(j.error ?? "Portail indisponible.");
   }
 
   async function addService(e: React.FormEvent) {
@@ -365,17 +386,36 @@ export default function EspaceProPage() {
             {/* Abonnement */}
             <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-8">
               <h2 className="font-bold text-lg mb-1">💳 Mon abonnement</h2>
-              <p className="text-sm text-neutral-500 font-body mb-6">
-                Le paiement en ligne arrive bientôt. En phase de lancement, l&apos;activation est immédiate.
+              <p className="text-sm text-neutral-500 font-body mb-2">
+                Mensuel, sans engagement, paiement sécurisé par Stripe. Résiliable à tout moment.
               </p>
+              {checkoutMsg && <p className="text-sm font-bold text-mint bg-mint/10 rounded-xl px-4 py-2.5 mb-4">{checkoutMsg}</p>}
+              {pro.subscription_status === "past_due" && (
+                <p className="text-sm font-bold text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 mb-4">
+                  ⚠️ Dernier paiement échoué. Mettez à jour votre moyen de paiement pour rester visible.
+                </p>
+              )}
+              {pro.stripe_subscription_id && (
+                <div className="flex flex-wrap items-center gap-3 mb-5">
+                  {pro.current_period_end && (
+                    <span className="text-xs font-bold text-neutral-400">
+                      Prochaine échéance : {new Date(pro.current_period_end).toLocaleDateString("fr-FR")}
+                    </span>
+                  )}
+                  <button onClick={openPortal} className="text-xs font-bold px-4 py-2 rounded-full border border-neutral-200 hover:border-ink transition">
+                    Gérer mon abonnement, factures et carte →
+                  </button>
+                </div>
+              )}
               <div className="grid sm:grid-cols-3 gap-4">
                 {PLANS.map((p) => {
                   const active = pro.subscription_plan === p.id && pro.subscription_status === "active";
                   return (
                     <button
                       key={p.id}
-                      onClick={() => choosePlan(p.id)}
-                      className={`text-left rounded-2xl p-5 border-2 transition ${
+                      onClick={() => !active && choosePlan(p.id)}
+                      disabled={!!paying}
+                      className={`text-left rounded-2xl p-5 border-2 transition disabled:opacity-60 ${
                         active
                           ? "border-coral bg-orange-50 shadow-md"
                           : "border-neutral-100 hover:border-neutral-300"
@@ -384,7 +424,9 @@ export default function EspaceProPage() {
                       <p className="font-bold">{p.label}</p>
                       <p className="text-lg font-extrabold text-coral-dark">{p.price}</p>
                       <p className="text-xs text-neutral-500 font-body mt-1">{p.desc}</p>
-                      {active && <p className="text-[11px] font-bold text-mint mt-2">✓ Plan actuel</p>}
+                      {active
+                        ? <p className="text-[11px] font-bold text-mint mt-2">✓ Plan actuel</p>
+                        : <p className="text-[11px] font-bold text-coral mt-2">{paying === p.id ? "Redirection..." : pro.stripe_subscription_id ? "Changer pour ce plan →" : "Souscrire →"}</p>}
                     </button>
                   );
                 })}

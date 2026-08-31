@@ -52,6 +52,19 @@ export async function POST(request: Request) {
         });
       }
 
+      // ===== RÉGLAGES DU SITE =====
+      case "settings": {
+        const { data } = await db.from("site_settings").select("key, value");
+        return NextResponse.json({ data: Object.fromEntries((data ?? []).map((r) => [r.key, r.value])) });
+      }
+      case "set_maintenance": {
+        await db.from("site_settings").upsert({
+          key: "maintenance",
+          value: { enabled: !!payload.enabled, message: String(payload.message ?? "").slice(0, 300) },
+        });
+        return NextResponse.json({ ok: true });
+      }
+
       // ===== MODÉRATION =====
       case "signalements": {
         const { data } = await db

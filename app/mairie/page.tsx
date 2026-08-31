@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { uploadPhoto } from "@/lib/upload";
 import EvenementsManager from "@/components/EvenementsManager";
+import MairieAbonnement from "@/components/MairieAbonnement";
 
 type Commune = { id: string; nom: string; slug: string; is_certified: boolean };
 type Alerte = { id: string; title: string; body: string | null; starts_at: string | null; ends_at: string | null; created_at: string; photo_url: string | null };
@@ -331,6 +332,9 @@ export default function MairiePage() {
             </button>
           </form>
         </div>
+
+        {/* Abonnement : Stripe ou mandat administratif */}
+        <MairieAbonnement communeId={commune.id} communeNom={commune.nom} isCertified={commune.is_certified} />
 
         {/* Événements : agenda de la commune */}
         <EvenementsManager communeId={commune.id} communeNom={commune.nom} />
