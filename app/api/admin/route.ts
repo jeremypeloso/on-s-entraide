@@ -85,7 +85,8 @@ export async function POST(request: Request) {
           const stripe = getStripe();
           const key = process.env.STRIPE_SECRET_KEY ?? "";
           out.mode = key.startsWith("sk_live_") ? "live" : key.startsWith("sk_test_") ? "test" : "inconnu";
-                    const balance = await stripe.balance.retrieve();
+          // Validation de la clé : un appel léger suffit (le compte lui-même n'est pas toujours accessible avec une clé restreinte)
+          const balance = await stripe.balance.retrieve();
           out.key = { ok: true, account: balance.livemode ? "compte live" : "compte test", chargesEnabled: true, payoutsEnabled: true };
 
           const expected: Record<string, { id: string; amount: number; interval: string }> = {
@@ -278,7 +279,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ data });
       }
       case "contact_traiter": {
-        await db.from("contact_messages").update({ traite: true }).eq("id", payload.id);
+        await db.from("contact_messages").update({ traite: payload.value ?? true }).eq("id", payload.id);
+        return NextResponse.json({ ok: true });
+      }
+      case "contact_supprimer": {
+        await db.from("contact_messages").delete().eq("id", payload.id);
         return NextResponse.json({ ok: true });
       }
 

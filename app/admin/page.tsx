@@ -42,6 +42,7 @@ export default function AdminPage() {
   const [maintMsg, setMaintMsg] = useState("");
   const [emailTest, setEmailTest] = useState<any>(null);
   const [stripeCheck, setStripeCheck] = useState<any>(null);
+  const [contactView, setContactView] = useState<"a_traiter" | "archives">("a_traiter");
   const [stripeChecking, setStripeChecking] = useState(false);
   const [emailTesting, setEmailTesting] = useState(false);
 
@@ -531,37 +532,59 @@ export default function AdminPage() {
         })()}
 
         {/* ===== MESSAGES CONTACT ===== */}
-        {!loading && tab === "contacts" && data?.data && (
-          <div className="space-y-3">
-            {data.data.length === 0 && (
-              <p className="text-center text-sm font-bold text-neutral-400 py-10">Aucun message.</p>
-            )}
-            {data.data.map((m: any) => (
-              <div key={m.id} className={`bg-white rounded-2xl border p-5 ${m.traite ? "border-neutral-200 opacity-60" : "border-coral/30"}`}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-coral-dark uppercase">{m.sujet}</p>
-                    <p className="font-bold text-sm mt-1">
-                      {m.nom ?? "Anonyme"} · <a href={`mailto:${m.email}`} className="text-sky hover:underline">{m.email}</a>
-                    </p>
-                    <p className="text-sm text-neutral-600 font-body mt-2 whitespace-pre-line">{m.message}</p>
-                    <p className="text-[11px] font-bold text-neutral-300 mt-2">
-                      {new Date(m.created_at).toLocaleString("fr-FR")}
-                    </p>
-                  </div>
-                  {!m.traite && (
-                    <button
-                      onClick={() => act("contact_traiter", { id: m.id }, "Message marqué traité")}
-                      className="text-xs font-bold px-4 py-2 rounded-full border border-neutral-200 hover:border-mint hover:text-mint transition flex-shrink-0"
-                    >
-                      ✓ Traité
-                    </button>
-                  )}
-                </div>
+        {!loading && tab === "contacts" && data?.data && (() => {
+          const list = data.data.filter((m: any) => contactView === "archives" ? m.traite : !m.traite);
+          const nbATraiter = data.data.filter((m: any) => !m.traite).length;
+          return (
+            <div className="space-y-3">
+              <div className="flex gap-2 mb-2">
+                <button onClick={() => setContactView("a_traiter")} className={`text-xs font-bold px-4 py-2 rounded-full transition ${contactView === "a_traiter" ? "bg-ink text-white" : "bg-white border border-neutral-200 text-neutral-500"}`}>
+                  À traiter{nbATraiter ? ` (${nbATraiter})` : ""}
+                </button>
+                <button onClick={() => setContactView("archives")} className={`text-xs font-bold px-4 py-2 rounded-full transition ${contactView === "archives" ? "bg-ink text-white" : "bg-white border border-neutral-200 text-neutral-500"}`}>
+                  Archivés ({data.data.length - nbATraiter})
+                </button>
               </div>
-            ))}
-          </div>
-        )}
+              {list.length === 0 && (
+                <p className="text-center text-sm font-bold text-neutral-400 py-10">{contactView === "archives" ? "Aucun message archivé." : "🎉 Aucun message à traiter."}</p>
+              )}
+              {list.map((m: any) => (
+                <div key={m.id} className={`bg-white rounded-2xl border p-5 ${m.traite ? "border-neutral-200" : "border-coral/30"}`}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-coral-dark uppercase">{m.sujet}</p>
+                      <p className="font-bold text-sm mt-1">
+                        {m.nom ?? "Anonyme"} · <a href={`mailto:${m.email}`} className="text-sky hover:underline">{m.email}</a>
+                      </p>
+                      <p className="text-sm text-neutral-600 font-body mt-2 whitespace-pre-line">{m.message}</p>
+                      <p className="text-[11px] font-bold text-neutral-300 mt-2">{new Date(m.created_at).toLocaleString("fr-FR")}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 flex-shrink-0">
+                      <a
+                        href={`mailto:${m.email}?subject=${encodeURIComponent(`Re: votre message à On se dit tout (${m.sujet})`)}&body=${encodeURIComponent(`Bonjour ${m.nom ?? ""},\n\n\n\n---\nVotre message :\n${m.message}`)}`}
+                        className="text-xs font-bold px-4 py-2 rounded-full bg-ink text-white hover:bg-ink/85 transition"
+                      >
+                        ✉️ Répondre
+                      </a>
+                      <button
+                        onClick={() => act("contact_traiter", { id: m.id, value: !m.traite }, m.traite ? "Message remis à traiter" : "Message archivé")}
+                        className="text-xs font-bold px-4 py-2 rounded-full border border-neutral-200 hover:border-mint hover:text-mint transition"
+                      >
+                        {m.traite ? "↩ Remettre à traiter" : "✓ Archiver"}
+                      </button>
+                      <button
+                        onClick={() => { if (window.confirm("Supprimer définitivement ce message ?")) act("contact_supprimer", { id: m.id }, "Message supprimé"); }}
+                        className="text-xs font-bold px-3 py-2 rounded-full text-neutral-300 hover:text-red-500 transition"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </div>
     </main>
   );
