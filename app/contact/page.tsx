@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 const SUJETS = [
   { id: "mairie", label: "🏛️ Je représente une mairie (démo, certification)" },
@@ -33,15 +32,12 @@ export default function ContactPage() {
     }
     setSending(true);
     setError(null);
-    const supabase = createClient();
-    const { error } = await supabase.from("contact_messages").insert({
-      sujet,
-      nom: nom.trim() || null,
-      email: email.trim(),
-      message: message.trim(),
+    const res = await fetch("/api/contact", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sujet, nom, email, message }),
     });
     setSending(false);
-    if (error) {
+    if (!res.ok) {
       setError("Envoi impossible. Réessayez dans un instant.");
       return;
     }

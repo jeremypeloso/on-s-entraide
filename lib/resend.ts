@@ -121,3 +121,23 @@ export async function sendCommuneCertifiedEmail(to: string, communeName: string,
     }),
   });
 }
+
+// ===== Message du formulaire de contact → équipe =====
+export async function sendContactEmail(sujet: string, nom: string | null, email: string, message: string) {
+  const to = process.env.CONTACT_TO_EMAIL || "jeremy.peloso@gmail.com";
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    replyTo: email,
+    subject: `[Contact · ${sujet}] ${nom ?? email}`,
+    html: layout({
+      title: `Nouveau message : ${esc(sujet)}`,
+      preheader: message.slice(0, 90),
+      body: `
+        <p><strong>De :</strong> ${esc(nom ?? "Anonyme")} · <a href="mailto:${esc(email)}" style="color:#E8503F;">${esc(email)}</a></p>
+        ${box(esc(message).replace(/\\n/g, "<br>"))}
+        <p style="font-size:13px;color:#8A8A99;">Répondez directement à cet email : la réponse partira vers l'expéditeur.</p>
+        <p style="text-align:center;margin:20px 0 6px;">${btn(`${SITE}/admin`, "Ouvrir l'administration", "#2B2440")}</p>`,
+    }),
+  });
+}
