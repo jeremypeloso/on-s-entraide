@@ -20,9 +20,10 @@ const PLANS = [
     name: "Visibilité",
     emoji: "🚀",
     price: "19€",
+    cents: "50",
     oldPrice: "39€",
     period: "/mois",
-    launchNote: "Offre de lancement : 19€/mois pendant 6 mois, puis 39€/mois. Sans engagement.",
+    launchNote: "Offre de lancement : 19,50€/mois pendant 6 mois, puis 39€/mois. Sans engagement.",
     desc: "Mis en avant en haut de page, sur votre bassin de vie.",
     highlight: true,
     features: [
@@ -151,7 +152,7 @@ export default function ProPage() {
                 <h3 className="text-xl font-bold">{p.name}</h3>
                 <p className="text-sm text-neutral-500 font-body mt-1 mb-5">{p.desc}</p>
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-extrabold">{p.price}</span>
+                  <span className="text-4xl font-extrabold">{p.price}{(p as any).cents && <sup className="text-lg font-extrabold ml-0.5">{(p as any).cents}</sup>}</span>
                   <span className="text-sm font-bold text-neutral-400">{p.period}</span>
                   {(p as any).oldPrice && (
                     <span className="text-lg font-bold text-neutral-300 line-through">{(p as any).oldPrice}</span>

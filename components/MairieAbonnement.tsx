@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const PLANS = [
   { id: "village", emoji: "🏡", label: "Village", pop: "< 2 000 hab.", price: "39€", note: "soit 468€/an" },
-  { id: "bourg", emoji: "⛪", label: "Bourg", pop: "2 000 – 10 000 hab.", price: "49€", oldPrice: "99€", note: "1ère année, puis 99€/mois", highlight: true },
+  { id: "bourg", emoji: "⛪", label: "Bourg", pop: "2 000 – 10 000 hab.", price: "49€", cents: "50", oldPrice: "99€", note: "1ère année, puis 99€/mois", highlight: true },
   { id: "ville", emoji: "🏙️", label: "Ville", pop: "> 10 000 hab.", price: "199€", note: "soit 2 388€/an" },
 ];
 
@@ -81,7 +81,7 @@ export default function MairieAbonnement({ communeId, communeNom, isCertified }:
                 <p className="text-2xl">{p.emoji}</p>
                 <p className="font-bold mt-1">{p.label}</p>
                 <p className="text-[11px] font-bold text-neutral-400">{p.pop}</p>
-                <p className="mt-2"><span className="text-xl font-extrabold text-sky">{p.price}</span><span className="text-xs font-bold text-neutral-400">/mois</span>
+                <p className="mt-2"><span className="text-xl font-extrabold text-sky">{p.price}{(p as any).cents && <sup className="text-xs ml-0.5">{(p as any).cents}</sup>}</span><span className="text-xs font-bold text-neutral-400">/mois</span>
                   {p.oldPrice && <span className="text-sm font-bold text-neutral-300 line-through ml-2">{p.oldPrice}</span>}</p>
                 <p className="text-[10px] font-bold text-neutral-400">{p.note}</p>
                 <p className="text-[11px] font-bold text-sky mt-2">{paying === p.id ? "Redirection..." : "Payer par carte →"}</p>

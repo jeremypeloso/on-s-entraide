@@ -18,9 +18,10 @@ const PLANS = [
     emoji: "⛪",
     pop: "2 000 à 10 000 habitants",
     price: "49€",
+    cents: "50",
     oldPrice: "99€",
     period: "/mois",
-    launchNote: "Offre de lancement : 49€/mois la première année, puis 99€/mois.",
+    launchNote: "Offre de lancement : 49,50€/mois la première année, puis 99€/mois.",
     highlight: true,
     features: [
       "Tout Village, plus :",
@@ -202,7 +203,7 @@ export default function MairiesPage() {
                 <h3 className="text-xl font-bold">{p.name}</h3>
                 <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mt-1 mb-5">{p.pop}</p>
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-extrabold">{p.price}</span>
+                  <span className="text-4xl font-extrabold">{p.price}{(p as any).cents && <sup className="text-lg font-extrabold ml-0.5">{(p as any).cents}</sup>}</span>
                   <span className="text-sm font-bold text-neutral-400">{p.period}</span>
                   {(p as any).oldPrice && (
                     <span className="text-lg font-bold text-neutral-300 line-through">{(p as any).oldPrice}</span>
