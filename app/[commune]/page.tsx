@@ -1,6 +1,26 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import CommuneTabs from "@/components/CommuneTabs";
 import { createClient } from "@/lib/supabase/server";
+
+export async function generateMetadata({ params }: { params: Promise<{ commune: string }> }): Promise<Metadata> {
+  const { commune: slug } = await params;
+  const supabase = await createClient();
+  const { data: c } = await supabase
+    .from("communes")
+    .select("nom, departement, code_postal, population, is_certified")
+    .eq("slug", slug)
+    .single();
+  if (!c) return { title: "Commune introuvable" };
+  const title = `${c.nom} (${c.code_postal ?? c.departement}) : annonces, agenda, pros et mairie`;
+  const description = `Tout ce qui se passe à ${c.nom} : entraide entre habitants, événements des associations, professionnels vérifiés${c.is_certified ? " et informations officielles de la mairie" : ""}. Page de la commune sur On se dit tout.`;
+  return {
+    title,
+    description,
+    alternates: { canonical: `https://onseditout.fr/${slug}` },
+    openGraph: { title: `${c.nom} · On se dit tout`, description, url: `https://onseditout.fr/${slug}`, type: "website" },
+  };
+}
 
 export default async function CommunePage({
   params,

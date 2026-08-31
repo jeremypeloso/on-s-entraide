@@ -1,6 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import VerifiedBadge from "@/components/VerifiedBadge";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: pro } = await supabase.from("pro_profiles").select("business_name, tagline, communes:base_commune_id(nom)").eq("id", id).single();
+  if (!pro) return { title: "Professionnel introuvable" };
+  // @ts-expect-error jointure typée souplement
+  const ville = pro.communes?.nom;
+  return { title: `${pro.business_name}${ville ? ` · ${ville}` : ""}`, description: pro.tagline ?? `${pro.business_name}, professionnel vérifié sur On se dit tout.` };
+}
 import ProReviews, { Stars } from "@/components/ProReviews";
 
 const RADIUS: Record<string, number> = { essentiel: 10, visibilite: 25, premium: 50 };

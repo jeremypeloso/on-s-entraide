@@ -1,6 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { assoCat } from "@/lib/associations";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: asso } = await supabase.from("associations").select("nom, description, communes(nom)").eq("id", id).single();
+  if (!asso) return { title: "Association introuvable" };
+  // @ts-expect-error jointure typée souplement
+  const ville = asso.communes?.nom;
+  return { title: `${asso.nom}${ville ? ` · ${ville}` : ""}`, description: asso.description?.slice(0, 160) ?? `${asso.nom}, association sur On se dit tout.` };
+}
 
 const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
