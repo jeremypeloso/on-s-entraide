@@ -5,6 +5,7 @@ import PhotoViewer from "@/components/PhotoViewer";
 import AnnonceOwnerActions from "@/components/AnnonceOwnerActions";
 import AdminBadge from "@/components/AdminBadge";
 import ReportButton from "@/components/ReportButton";
+import ContactButton from "@/components/ContactButton";
 
 const STATUT_STYLE: Record<string, string> = {
   disponible: "bg-mint/15 text-mint",
@@ -213,15 +214,9 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
                   </p>
                 ) : (
                   <div className="text-center">
-                    <button
-                      disabled
-                      className="w-full bg-neutral-100 text-neutral-400 font-bold py-3.5 rounded-full cursor-not-allowed"
-                    >
-                      💬 Contacter {author?.full_name?.split(" ")[0] ?? ""}
-                    </button>
+                    <ContactButton annonceId={annonce.id} firstName={author?.full_name?.split(" ")[0] ?? ""} />
                     <p className="text-[11px] text-neutral-400 font-body font-semibold mt-2">
-                      La messagerie intégrée arrive très bientôt. En attendant,
-                      posez une question publique !
+                      Messagerie privée, votre email n&apos;est jamais partagé.
                     </p>
                   </div>
                 )

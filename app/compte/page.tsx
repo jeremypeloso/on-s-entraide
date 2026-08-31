@@ -206,6 +206,12 @@ export default function ComptePage() {
             <h1 className="text-2xl font-bold truncate">{fullName || "Votre compte"}</h1>
             <p className="text-sm text-neutral-400 font-body font-semibold">{userEmail}</p>
           </div>
+          <a
+            href="/messages"
+            className="text-sm font-bold px-5 py-2.5 rounded-full border-2 border-neutral-200 text-ink/70 hover:border-coral hover:text-coral-dark transition"
+          >
+            💬 Mes messages
+          </a>
           {isAdmin && (
             <a
               href="/admin"

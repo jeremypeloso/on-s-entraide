@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type Cached = { logged: boolean; initial: string; avatar?: string | null };
+type Cached = { logged: boolean; initial: string; avatar?: string | null; unread?: number };
 
 function readCache(): Cached | null {
   if (typeof window === "undefined") return null;
@@ -28,9 +28,13 @@ export default function AuthButton() {
 
     async function apply(user: any) {
       let avatar: string | null = null;
+      let unread = 0;
       if (user) {
         const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single();
         avatar = p?.avatar_url ?? null;
+        const { count } = await supabase.from("messages").select("*", { count: "exact", head: true })
+          .neq("sender_id", user.id).is("read_at", null);
+        unread = count ?? 0;
       }
       const next: Cached = user
         ? {
@@ -39,6 +43,7 @@ export default function AuthButton() {
               .charAt(0)
               .toUpperCase(),
             avatar,
+            unread,
           }
         : { logged: false, initial: "" };
       setState(next);
@@ -73,9 +78,14 @@ export default function AuthButton() {
   return (
     <a
       href="/compte"
-      className="inline-flex items-center gap-2 text-sm font-bold pl-2 pr-2 sm:pr-4 py-1.5 rounded-full hover:bg-neutral-100 transition"
+      className="relative inline-flex items-center gap-2 text-sm font-bold pl-2 pr-2 sm:pr-4 py-1.5 rounded-full hover:bg-neutral-100 transition"
       aria-label="Mon compte"
     >
+      {!!state.unread && (
+        <span className="absolute -top-0.5 left-6 min-w-[18px] h-[18px] px-1 rounded-full bg-coral text-white text-[10px] font-extrabold flex items-center justify-center border-2 border-white">
+          {state.unread > 9 ? "9+" : state.unread}
+        </span>
+      )}
       {state.avatar ? (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img src={state.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
