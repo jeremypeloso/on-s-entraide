@@ -51,6 +51,10 @@ export default function ConnexionPage() {
         await supabase.from("profiles").upsert({ id: data.user.id, full_name: fullName });
       }
       if (data.session) {
+        // Parrainage ambassadeur (cookie osdt_ref posé par un lien ?ref=AMB-XXXXX)
+        fetch("/api/ambassadeurs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "parrainage" }) }).catch(() => {});
+      }
+      if (data.session) {
         // Confirmation email désactivée : connecté directement
         router.push("/");
         router.refresh();
