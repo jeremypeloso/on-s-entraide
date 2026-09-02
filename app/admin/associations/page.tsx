@@ -1,7 +1,7 @@
 "use client";
 
 import { useAdmin, useAdminData } from "@/components/admin/AdminContext";
-import { PageHeader, List, Row, Pill, Meta, IconBtn, Loading } from "@/components/admin/ui";
+import { PageHeader, List, Row, Pill, Meta, IconBtn, Loading, ApiError } from "@/components/admin/ui";
 
 export default function Page() {
   const { act } = useAdmin();
@@ -10,7 +10,8 @@ export default function Page() {
   return (
     <>
       <PageHeader title="Associations" subtitle="Vérifiez le RNA au Journal Officiel avant de valider." />
-      {loading ? <Loading /> : (
+      {loading ? <Loading /> : (<>
+        <ApiError error={data?.error} />
         <List count={list.length} empty="Aucune association.">
           {list.map((a: any) => (
             <Row key={a.id}>
@@ -29,7 +30,7 @@ export default function Page() {
             </Row>
           ))}
         </List>
-      )}
+      </>)}
     </>
   );
 }

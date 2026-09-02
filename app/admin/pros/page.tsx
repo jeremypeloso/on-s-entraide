@@ -1,7 +1,7 @@
 "use client";
 
 import { useAdmin, useAdminData } from "@/components/admin/AdminContext";
-import { PageHeader, List, Row, Pill, Meta, Loading } from "@/components/admin/ui";
+import { PageHeader, List, Row, Pill, Meta, Loading, ApiError } from "@/components/admin/ui";
 
 export default function Page() {
   const { act } = useAdmin();
@@ -10,7 +10,8 @@ export default function Page() {
   return (
     <>
       <PageHeader title="Pros" subtitle="Artisans et commerçants inscrits. Vérifiez le SIRET avant d'activer le badge." />
-      {loading ? <Loading /> : (
+      {loading ? <Loading /> : (<>
+        <ApiError error={data?.error} />
         <List count={list.length} empty="Aucun pro inscrit.">
           {list.map((p: any) => (
             <Row key={p.id}>
@@ -29,7 +30,7 @@ export default function Page() {
             </Row>
           ))}
         </List>
-      )}
+      </>)}
     </>
   );
 }

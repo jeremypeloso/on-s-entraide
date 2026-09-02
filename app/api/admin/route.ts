@@ -201,12 +201,17 @@ export async function POST(request: Request) {
       case "users": {
         let q = db
           .from("profiles")
-          .select("id, full_name, is_admin, created_at, communes:commune_residence_id(nom), ambassadeurs(statut)")
+          .select("id, full_name, is_admin, created_at, communes:commune_residence_id(nom)")
           .order("created_at", { ascending: false })
           .limit(50);
         if (payload?.search) q = q.ilike("full_name", `%${payload.search}%`);
-        const { data } = await q;
-        return NextResponse.json({ data });
+        const { data, error } = await q;
+        if (error) throw error;
+        const ids = (data ?? []).map((u) => u.id);
+        const { data: ambs } = ids.length ? await db.from("ambassadeurs").select("user_id, statut").in("user_id", ids) : { data: [] };
+        const byUser: Record<string, string> = {};
+        for (const a of ambs ?? []) byUser[a.user_id] = a.statut;
+        return NextResponse.json({ data: (data ?? []).map((u) => ({ ...u, ambassadeur_statut: byUser[u.id] ?? null })) });
       }
 
       // ===== PROS =====
@@ -341,21 +346,36 @@ export async function POST(request: Request) {
 
       // ===== AMBASSADEURS =====
       case "ambassadeurs": {
-        const [{ data: ambs }, { data: recs }] = await Promise.all([
-          db.from("ambassadeurs")
-            .select("id, user_id, commune, motivation, ref_code, statut, created_at, conditions_version, conditions_accepted_at, profiles:user_id(full_name), ambassadeur_stats(habitants, pros, collectivites, points_total, points_debloques, points_depenses, points_disponibles)")
-            .order("created_at", { ascending: false }),
-          db.from("recompenses")
-            .select("id, points, montant, statut, note, created_at, sent_at, ambassadeurs(id, user_id, commune, profiles:user_id(full_name))")
-            .order("created_at", { ascending: false }).limit(100),
+        const { data: ambs, error: e1 } = await db.from("ambassadeurs")
+          .select("id, user_id, commune, motivation, ref_code, statut, created_at, conditions_version, conditions_accepted_at")
+          .order("created_at", { ascending: false });
+        if (e1) throw e1;
+        const ambIds = (ambs ?? []).map((a) => a.id);
+        const userIds = (ambs ?? []).map((a) => a.user_id);
+        const [{ data: profs }, { data: stats }, { data: recs, error: e2 }] = await Promise.all([
+          userIds.length ? db.from("profiles").select("id, full_name").in("id", userIds) : Promise.resolve({ data: [] as any[] }),
+          ambIds.length ? db.from("ambassadeur_stats").select("*").in("ambassadeur_id", ambIds) : Promise.resolve({ data: [] as any[] }),
+          db.from("recompenses").select("id, ambassadeur_id, points, montant, statut, note, created_at, sent_at").order("created_at", { ascending: false }).limit(100),
         ]);
-        // Emails des ambassadeurs (auth.users) pour l'envoi des cartes
-        const { data: list } = await db.auth.admin.listUsers({ perPage: 1000 });
+        if (e2) throw e2;
+        const name: Record<string, string | null> = {};
+        for (const p of profs ?? []) name[p.id] = p.full_name;
+        const stat: Record<string, any> = {};
+        for (const s of stats ?? []) stat[s.ambassadeur_id] = s;
+        const amb: Record<string, any> = {};
+        for (const a of ambs ?? []) amb[a.id] = a;
+        // Emails (auth.users) pour l'envoi des cartes
         const emails: Record<string, string> = {};
-        for (const u of list?.users ?? []) if (u.email) emails[u.id] = u.email;
+        try {
+          const { data: list } = await db.auth.admin.listUsers({ perPage: 1000 });
+          for (const u of list?.users ?? []) if (u.email) emails[u.id] = u.email;
+        } catch {}
         return NextResponse.json({
-          data: (ambs ?? []).map((a: any) => ({ ...a, email: emails[a.user_id] ?? null, stats: Array.isArray(a.ambassadeur_stats) ? a.ambassadeur_stats[0] : a.ambassadeur_stats })),
-          recompenses: (recs ?? []).map((r: any) => ({ ...r, email: emails[r.ambassadeurs?.user_id] ?? null })),
+          data: (ambs ?? []).map((a) => ({ ...a, email: emails[a.user_id] ?? null, full_name: name[a.user_id] ?? null, stats: stat[a.id] ?? null })),
+          recompenses: (recs ?? []).map((r) => {
+            const a = amb[r.ambassadeur_id];
+            return { ...r, email: a ? emails[a.user_id] ?? null : null, full_name: a ? name[a.user_id] ?? null : null, commune: a?.commune ?? null };
+          }),
         });
       }
       case "ambassadeur_set_statut": {
@@ -378,14 +398,14 @@ export async function POST(request: Request) {
         return NextResponse.json({ ok: true });
       }
       case "recompense_envoyee": {
-        const { data: rec } = await db.from("recompenses").select("id, montant, ambassadeurs(user_id, profiles:user_id(full_name))").eq("id", payload.id).single();
+        const { data: rec } = await db.from("recompenses").select("id, montant, ambassadeur_id").eq("id", payload.id).single();
         if (!rec) return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
         const note = String(payload.note ?? "").trim() || null;
         await db.from("recompenses").update({ statut: "envoyee", sent_at: new Date().toISOString(), note }).eq("id", payload.id);
-        const userId = (rec as any).ambassadeurs?.user_id;
-        if (userId) {
-          const { data: u } = await db.auth.admin.getUserById(userId);
-          const prenom = ((rec as any).ambassadeurs?.profiles?.full_name ?? "").split(" ")[0] || "vous";
+        const { data: a } = await db.from("ambassadeurs").select("user_id").eq("id", rec.ambassadeur_id).maybeSingle();
+        if (a?.user_id) {
+          const [{ data: u }, { data: p }] = await Promise.all([db.auth.admin.getUserById(a.user_id), db.from("profiles").select("full_name").eq("id", a.user_id).maybeSingle()]);
+          const prenom = (p?.full_name ?? "").split(" ")[0] || "vous";
           if (u?.user?.email) { try { await sendGiftCardEmail(u.user.email, prenom, rec.montant, note); } catch {} }
         }
         return NextResponse.json({ ok: true });

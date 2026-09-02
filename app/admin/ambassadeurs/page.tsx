@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdmin, useAdminData } from "@/components/admin/AdminContext";
-import { PageHeader, Card, List, Row, Pill, Avatar, Meta, Btn, IconBtn, Input, Section, Tabs, Loading, fmtDate } from "@/components/admin/ui";
+import { PageHeader, Card, List, Row, Pill, Avatar, Meta, Btn, IconBtn, Input, Section, Tabs, Loading, fmtDate, ApiError } from "@/components/admin/ui";
 import { BAREME, PALIERS } from "@/lib/ambassadeurs";
 
 export default function Page() {
@@ -23,7 +23,8 @@ export default function Page() {
     <>
       <PageHeader title="Ambassadeurs" subtitle={`Barème : ${BAREME.habitant} pts par habitant (bloqués), ${BAREME.pro} pts par pro (+${BAREME.deblocageParPro} débloqués), ${BAREME.collectivite} pts par mairie (+${BAREME.deblocageParCollectivite} débloqués). Paliers : ${PALIERS.map((p) => `${p.points} pts = ${p.montant} €`).join(", ")}.`} />
 
-      {loading ? <Loading /> : (
+      {loading ? <Loading /> : (<>
+        <ApiError error={data?.error} />
         <>
           {/* Cartes cadeaux à envoyer */}
           <Section title="Cartes cadeaux à envoyer" count={attente.length} className="mb-8">
@@ -34,9 +35,9 @@ export default function Page() {
                 {attente.map((r) => (
                   <Card key={r.id} tone="warn" className="p-5">
                     <div className="flex flex-wrap items-center gap-4">
-                      <Avatar name={r.ambassadeurs?.profiles?.full_name} gradient="from-sun to-coral" />
+                      <Avatar name={r.full_name} gradient="from-sun to-coral" />
                       <div className="flex-1 min-w-[180px]">
-                        <p className="font-bold text-sm">{r.ambassadeurs?.profiles?.full_name ?? "—"} <span className="text-neutral-400 font-semibold">· {r.ambassadeurs?.commune}</span></p>
+                        <p className="font-bold text-sm">{r.full_name ?? "—"} <span className="text-neutral-400 font-semibold">· {r.commune}</span></p>
                         <p className="text-xs font-bold text-neutral-400 mt-0.5">
                           {r.email ? <a href={`mailto:${r.email}`} className="text-sky hover:underline">{r.email}</a> : "email inconnu"} · demandé le {fmtDate(r.created_at)}
                         </p>
@@ -71,9 +72,9 @@ export default function Page() {
                 return (
                   <div key={a.id} className="px-5 py-4">
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                      <Avatar name={a.profiles?.full_name} gradient="from-coral to-lilac" />
+                      <Avatar name={a.full_name} gradient="from-coral to-lilac" />
                       <div className="flex-1 min-w-[160px]">
-                        <p className="font-bold text-sm">{a.profiles?.full_name ?? "—"} <span className="text-neutral-400 font-semibold">· {a.commune}</span></p>
+                        <p className="font-bold text-sm">{a.full_name ?? "—"} <span className="text-neutral-400 font-semibold">· {a.commune}</span></p>
                         <p className="text-xs font-bold text-neutral-400 mt-0.5">
                           {a.email ? <a href={`mailto:${a.email}`} className="text-sky hover:underline">{a.email}</a> : "—"} · <span className="font-mono">{a.ref_code}</span> · depuis le {fmtDate(a.created_at)}
                         </p>
@@ -111,7 +112,7 @@ export default function Page() {
             <List count={historique.length} empty="Aucune carte envoyée pour l'instant.">
               {historique.map((r) => (
                 <Row key={r.id}>
-                  <span className="flex-1 min-w-[160px] font-bold text-sm">{r.ambassadeurs?.profiles?.full_name ?? "—"}</span>
+                  <span className="flex-1 min-w-[160px] font-bold text-sm">{r.full_name ?? "—"}</span>
                   <span className="font-extrabold">{r.montant} €</span>
                   <Meta>{r.points} pts</Meta>
                   <Meta>{r.sent_at ? `envoyée le ${fmtDate(r.sent_at)}` : `demandée le ${fmtDate(r.created_at)}`}</Meta>
@@ -122,7 +123,7 @@ export default function Page() {
             </List>
           </Section>
         </>
-      )}
+      </>)}
     </>
   );
 }

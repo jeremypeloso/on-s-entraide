@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdmin, useAdminData } from "@/components/admin/AdminContext";
-import { PageHeader, List, Row, Pill, Avatar, Meta, Input, Btn, Loading, fmtDate } from "@/components/admin/ui";
+import { PageHeader, List, Row, Pill, Avatar, Meta, Input, Btn, Loading, fmtDate, ApiError } from "@/components/admin/ui";
 
 export default function Page() {
   const { act } = useAdmin();
@@ -19,7 +19,8 @@ export default function Page() {
           <Btn tone="dark" size="md" type="submit">Chercher</Btn>
         </form>
       </PageHeader>
-      {loading ? <Loading /> : (
+      {loading ? <Loading /> : (<>
+        <ApiError error={data?.error} />
         <List count={list.length} empty="Aucun utilisateur trouvé.">
           {list.map((u: any) => (
             <Row key={u.id}>
@@ -28,7 +29,7 @@ export default function Page() {
               <Meta>{u.communes?.nom ?? "Pas de commune"}</Meta>
               <Meta>Inscrit le {fmtDate(u.created_at)}</Meta>
               {u.is_admin && <Pill tone="ink">Admin</Pill>}
-              {u.ambassadeurs?.length > 0 ? (
+              {u.ambassadeur_statut ? (
                 <Pill tone="coral">📣 Ambassadeur</Pill>
               ) : (
                 <Btn onClick={() => { if (window.confirm(`Nommer ${u.full_name ?? "cet utilisateur"} ambassadeur ? Il devra accepter les conditions du programme à sa première visite.`)) act("ambassadeur_nommer", { user_id: u.id }, "Ambassadeur nommé"); }}>
@@ -38,7 +39,7 @@ export default function Page() {
             </Row>
           ))}
         </List>
-      )}
+      </>)}
     </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAdmin, useAdminData } from "@/components/admin/AdminContext";
-import { PageHeader, List, Row, Pill, IconBtn, Meta, Loading } from "@/components/admin/ui";
+import { PageHeader, List, Row, Pill, IconBtn, Meta, Loading, ApiError } from "@/components/admin/ui";
 
 export default function Page() {
   const { act } = useAdmin();
@@ -10,7 +10,8 @@ export default function Page() {
   return (
     <>
       <PageHeader title="Annonces" subtitle="Les 50 dernières annonces publiées, toutes communes confondues." />
-      {loading ? <Loading /> : (
+      {loading ? <Loading /> : (<>
+        <ApiError error={data?.error} />
         <List count={list.length} empty="Aucune annonce.">
           {list.map((a: any) => (
             <Row key={a.id}>
@@ -24,7 +25,7 @@ export default function Page() {
             </Row>
           ))}
         </List>
-      )}
+      </>)}
     </>
   );
 }
