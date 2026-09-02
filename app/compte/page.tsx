@@ -25,6 +25,7 @@ export default function ComptePage() {
   const [isPro, setIsPro] = useState(false);
   const [isAsso, setIsAsso] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAmbassadeur, setIsAmbassadeur] = useState(false);
   const [notifQuestions, setNotifQuestions] = useState(true);
   const [notifDigest, setNotifDigest] = useState(true);
 
@@ -55,6 +56,8 @@ export default function ComptePage() {
         setFullName(profile.full_name ?? "");
         setAvatarUrl(profile.avatar_url ?? null);
         setIsAdmin(!!profile.is_admin);
+        const { data: amb } = await supabase.from("ambassadeurs").select("statut").eq("user_id", user.id).maybeSingle();
+        setIsAmbassadeur(!!amb);
         setNotifQuestions(profile.notif_questions !== false);
         setNotifDigest(profile.notif_digest !== false);
         // @ts-expect-error jointure typée souplement
@@ -221,6 +224,14 @@ export default function ComptePage() {
           >
             💬 Mes messages
           </a>
+          {isAmbassadeur && (
+            <a
+              href="/ambassadeurs/espace"
+              className="text-sm font-bold px-5 py-2.5 rounded-full bg-gradient-to-br from-coral to-coral-dark text-white shadow-md shadow-coral/20 hover:brightness-105 transition flex items-center gap-2"
+            >
+              📣 Espace ambassadeur
+            </a>
+          )}
           {isAdmin && (
             <a
               href="/admin"
