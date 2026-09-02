@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import {
   sendWelcomeEmail, sendNewMessageEmail, sendCommentNotificationEmail,
-  sendDailyDigestEmail, sendVigilanceAlertEmail, sendCommuneCertifiedEmail, sendGiftCardEmail,
+  sendDailyDigestEmail, sendVigilanceAlertEmail, sendCommuneCertifiedEmail, sendGiftCardEmail, sendAmbassadorEmail,
 } from "@/lib/resend";
 import { genRefCode } from "@/lib/ambassadeurs";
 import { getStripe, PRICES, COUPONS } from "@/lib/stripe";
@@ -21,6 +21,14 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
   return profile?.is_admin ? user : null;
+}
+
+async function notifyAmbassadeur(userId: string, commune: string, mode: "nomination" | "validation") {
+  try {
+    const db = createAdminClient();
+    const [{ data: u }, { data: p }] = await Promise.all([db.auth.admin.getUserById(userId), db.from("profiles").select("full_name").eq("id", userId).maybeSingle()]);
+    if (u?.user?.email) await sendAmbassadorEmail(u.user.email, (p?.full_name ?? "").split(" ")[0] || "vous", commune, mode);
+  } catch (e) { console.error("Email ambassadeur :", e); }
 }
 
 export async function POST(request: Request) {
@@ -379,7 +387,9 @@ export async function POST(request: Request) {
         });
       }
       case "ambassadeur_set_statut": {
+        const { data: before } = await db.from("ambassadeurs").select("user_id, commune, statut").eq("id", payload.id).maybeSingle();
         await db.from("ambassadeurs").update({ statut: payload.value }).eq("id", payload.id);
+        if (before?.statut === "candidat" && payload.value === "actif") await notifyAmbassadeur(before.user_id, before.commune, "validation");
         return NextResponse.json({ ok: true });
       }
       case "ambassadeur_nommer": {
@@ -391,6 +401,7 @@ export async function POST(request: Request) {
           { onConflict: "user_id", ignoreDuplicates: true }
         );
         if (error) throw error;
+        await notifyAmbassadeur(payload.user_id, commune, "nomination");
         return NextResponse.json({ ok: true });
       }
       case "ambassadeur_supprimer": {

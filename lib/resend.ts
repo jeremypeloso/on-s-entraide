@@ -158,3 +158,28 @@ export async function sendGiftCardEmail(to: string, prenom: string, montant: num
     }),
   });
 }
+
+// ===== Nomination / validation ambassadeur =====
+export async function sendAmbassadorEmail(to: string, prenom: string, commune: string, mode: "nomination" | "validation") {
+  const url = `${SITE}/ambassadeurs/espace`;
+  const intro = mode === "nomination"
+    ? `<p>Bonjour ${esc(prenom)},</p><p>Vous connaissez tout le monde à <strong>${esc(commune)}</strong>, et ça se voit. Nous aimerions vous confier le rôle d'<strong>ambassadeur</strong> de votre commune sur On se dit tout.</p>`
+    : `<p>Bonjour ${esc(prenom)},</p><p>Bonne nouvelle : votre candidature est acceptée, vous êtes désormais <strong>ambassadeur</strong> de <strong>${esc(commune)}</strong> sur On se dit tout.</p>`;
+  return getResend().emails.send({
+    from: FROM, to,
+    subject: mode === "nomination" ? `Devenez ambassadeur de ${commune} 📣` : `Vous êtes ambassadeur de ${commune} 📣`,
+    html: layout({
+      title: mode === "nomination" ? "On a pensé à vous" : "Bienvenue parmi les ambassadeurs",
+      preheader: "Votre lien de parrainage vous attend dans votre espace.",
+      body: `
+        ${intro}
+        ${box(`<strong>Concrètement :</strong><br>
+        📣 Vous parlez du site autour de vous avec votre lien personnel<br>
+        ✍️ Vous publiez les premières annonces de la commune<br>
+        🤝 Vous ouvrez la porte aux commerçants et à la mairie<br>
+        🎁 Chaque personne que vous amenez vous rapporte des points, échangeables contre des cartes cadeaux`)}
+        <p>${mode === "nomination" ? "Rien n'est obligatoire : ouvrez votre espace, lisez les conditions du programme, et acceptez-les si l'aventure vous tente." : "Ouvrez votre espace pour récupérer votre lien de parrainage et le kit de démarrage."}</p>
+        <p style="text-align:center;margin:26px 0 6px;">${btn(url, "Ouvrir mon espace ambassadeur")}</p>`,
+    }),
+  });
+}
