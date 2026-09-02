@@ -141,3 +141,20 @@ export async function sendContactEmail(sujet: string, nom: string | null, email:
     }),
   });
 }
+
+// ===== Carte cadeau ambassadeur =====
+export async function sendGiftCardEmail(to: string, prenom: string, montant: number, note: string | null) {
+  return getResend().emails.send({
+    from: FROM, to,
+    subject: `Votre carte cadeau de ${montant} € est en route 🎁`,
+    html: layout({
+      title: "Merci, ambassadeur !",
+      preheader: `Votre carte cadeau de ${montant} € a été envoyée.`,
+      body: `
+        <p>Bonjour ${esc(prenom)},</p>
+        <p>Merci pour tout ce que vous faites pour votre commune. Votre carte cadeau de <strong>${montant} €</strong> a été envoyée.</p>
+        ${note ? box(esc(note)) : ""}
+        <p style="text-align:center;margin:26px 0 6px;">${btn(`${SITE}/ambassadeurs/espace`, "Voir mon espace ambassadeur")}</p>`,
+    }),
+  });
+}

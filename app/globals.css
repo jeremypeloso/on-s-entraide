@@ -57,3 +57,6 @@ body {
 /* Masquer la scrollbar de la barre de catégories (scroll horizontal mobile) */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* Espace admin : masque l'en-tête et le pied de page du site */
+body.admin-mode > header,
+body.admin-mode > footer { display: none; }

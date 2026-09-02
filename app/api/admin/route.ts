@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import {
   sendWelcomeEmail, sendNewMessageEmail, sendCommentNotificationEmail,
-  sendDailyDigestEmail, sendVigilanceAlertEmail, sendCommuneCertifiedEmail,
+  sendDailyDigestEmail, sendVigilanceAlertEmail, sendCommuneCertifiedEmail, sendGiftCardEmail,
 } from "@/lib/resend";
+import { genRefCode } from "@/lib/ambassadeurs";
 import { getStripe, PRICES, COUPONS } from "@/lib/stripe";
 
 // Toutes les actions d'administration passent par cette route :
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     switch (action) {
       // ===== VUE D'ENSEMBLE =====
       case "stats": {
-        const [users, annonces, annoncesActives, pros, prosActifs, certifiees, signalements, contacts, comments, avisSignales, assosAttente] =
+        const [users, annonces, annoncesActives, pros, prosActifs, certifiees, signalements, contacts, comments, avisSignales, assosAttente, ambCandidats, ambActifs, cartesAttente] =
           await Promise.all([
             db.from("profiles").select("*", { count: "exact", head: true }),
             db.from("annonces").select("*", { count: "exact", head: true }),
@@ -48,12 +49,16 @@ export async function POST(request: Request) {
             db.from("annonce_comments").select("*", { count: "exact", head: true }),
             db.from("review_signalements").select("*", { count: "exact", head: true }).eq("statut", "en_attente"),
             db.from("associations").select("*", { count: "exact", head: true }).eq("is_verified", false),
+            db.from("ambassadeurs").select("*", { count: "exact", head: true }).eq("statut", "candidat"),
+            db.from("ambassadeurs").select("*", { count: "exact", head: true }).eq("statut", "actif"),
+            db.from("recompenses").select("*", { count: "exact", head: true }).eq("statut", "en_attente"),
           ]);
         return NextResponse.json({
           users: users.count, annonces: annonces.count, annoncesActives: annoncesActives.count,
           pros: pros.count, prosActifs: prosActifs.count, certifiees: certifiees.count,
           signalements: signalements.count, contacts: contacts.count, comments: comments.count,
           avisSignales: avisSignales.count, assosAttente: assosAttente.count,
+          ambCandidats: ambCandidats.count, ambActifs: ambActifs.count, cartesAttente: cartesAttente.count,
         });
       }
 
@@ -196,7 +201,7 @@ export async function POST(request: Request) {
       case "users": {
         let q = db
           .from("profiles")
-          .select("id, full_name, is_admin, created_at, communes:commune_residence_id(nom)")
+          .select("id, full_name, is_admin, created_at, communes:commune_residence_id(nom), ambassadeurs(statut)")
           .order("created_at", { ascending: false })
           .limit(50);
         if (payload?.search) q = q.ilike("full_name", `%${payload.search}%`);
@@ -336,18 +341,57 @@ export async function POST(request: Request) {
 
       // ===== AMBASSADEURS =====
       case "ambassadeurs": {
-        const { data } = await db
-          .from("ambassadeurs")
-          .select("id, nom, email, telephone, commune, profil, motivation, ref_code, statut, created_at, ambassadeur_stats(habitants, pros, collectivites)")
-          .order("created_at", { ascending: false });
-        return NextResponse.json({ data });
+        const [{ data: ambs }, { data: recs }] = await Promise.all([
+          db.from("ambassadeurs")
+            .select("id, user_id, commune, motivation, ref_code, statut, created_at, conditions_version, conditions_accepted_at, profiles:user_id(full_name), ambassadeur_stats(habitants, pros, collectivites, points_total, points_debloques, points_depenses, points_disponibles)")
+            .order("created_at", { ascending: false }),
+          db.from("recompenses")
+            .select("id, points, montant, statut, note, created_at, sent_at, ambassadeurs(id, user_id, commune, profiles:user_id(full_name))")
+            .order("created_at", { ascending: false }).limit(100),
+        ]);
+        // Emails des ambassadeurs (auth.users) pour l'envoi des cartes
+        const { data: list } = await db.auth.admin.listUsers({ perPage: 1000 });
+        const emails: Record<string, string> = {};
+        for (const u of list?.users ?? []) if (u.email) emails[u.id] = u.email;
+        return NextResponse.json({
+          data: (ambs ?? []).map((a: any) => ({ ...a, email: emails[a.user_id] ?? null, stats: Array.isArray(a.ambassadeur_stats) ? a.ambassadeur_stats[0] : a.ambassadeur_stats })),
+          recompenses: (recs ?? []).map((r: any) => ({ ...r, email: emails[r.ambassadeurs?.user_id] ?? null })),
+        });
       }
       case "ambassadeur_set_statut": {
         await db.from("ambassadeurs").update({ statut: payload.value }).eq("id", payload.id);
         return NextResponse.json({ ok: true });
       }
+      case "ambassadeur_nommer": {
+        const { data: p } = await db.from("profiles").select("id, communes:commune_residence_id(nom)").eq("id", payload.user_id).maybeSingle();
+        if (!p) return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
+        const commune = (p as any).communes?.nom ?? "À préciser";
+        const { error } = await db.from("ambassadeurs").upsert(
+          { user_id: payload.user_id, commune, ref_code: genRefCode(), statut: "actif" },
+          { onConflict: "user_id", ignoreDuplicates: true }
+        );
+        if (error) throw error;
+        return NextResponse.json({ ok: true });
+      }
       case "ambassadeur_supprimer": {
         await db.from("ambassadeurs").delete().eq("id", payload.id);
+        return NextResponse.json({ ok: true });
+      }
+      case "recompense_envoyee": {
+        const { data: rec } = await db.from("recompenses").select("id, montant, ambassadeurs(user_id, profiles:user_id(full_name))").eq("id", payload.id).single();
+        if (!rec) return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
+        const note = String(payload.note ?? "").trim() || null;
+        await db.from("recompenses").update({ statut: "envoyee", sent_at: new Date().toISOString(), note }).eq("id", payload.id);
+        const userId = (rec as any).ambassadeurs?.user_id;
+        if (userId) {
+          const { data: u } = await db.auth.admin.getUserById(userId);
+          const prenom = ((rec as any).ambassadeurs?.profiles?.full_name ?? "").split(" ")[0] || "vous";
+          if (u?.user?.email) { try { await sendGiftCardEmail(u.user.email, prenom, rec.montant, note); } catch {} }
+        }
+        return NextResponse.json({ ok: true });
+      }
+      case "recompense_annuler": {
+        await db.from("recompenses").update({ statut: "annulee" }).eq("id", payload.id);
         return NextResponse.json({ ok: true });
       }
 
