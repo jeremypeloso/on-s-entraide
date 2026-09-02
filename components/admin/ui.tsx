@@ -92,6 +92,11 @@ export function Section({ title, count, children, className = "" }: { title: str
   );
 }
 
+export function ApiError({ error }: { error?: string }) {
+  if (!error) return null;
+  return <Card tone="alert" className="px-5 py-4 text-sm font-bold text-red-600 mb-4">⚠️ {error}</Card>;
+}
+
 export function Loading() {
   return <p className="text-sm font-bold text-neutral-400 animate-pulse py-12 text-center">Chargement…</p>;
 }

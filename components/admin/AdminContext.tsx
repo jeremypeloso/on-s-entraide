@@ -20,12 +20,17 @@ type Ctx = {
 const AdminCtx = createContext<Ctx | null>(null);
 
 export async function api(action: string, payload?: any) {
-  const res = await fetch("/api/admin", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action, payload }),
-  });
-  return res.json();
+  try {
+    const res = await fetch("/api/admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, payload }),
+    });
+    const text = await res.text();
+    try { return JSON.parse(text); } catch { return { error: `Réponse invalide du serveur (${res.status})` }; }
+  } catch (e: any) {
+    return { error: e?.message ?? "Erreur réseau" };
+  }
 }
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
