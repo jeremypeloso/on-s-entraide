@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Tab = "stats" | "moderation" | "avis" | "annonces" | "users" | "pros" | "assos" | "mairies" | "contacts" | "reglages";
+type Tab = "stats" | "moderation" | "avis" | "annonces" | "users" | "pros" | "assos" | "mairies" | "ambassadeurs" | "contacts" | "reglages";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "stats", label: "📊 Vue d'ensemble" },
@@ -15,6 +15,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "pros", label: "💼 Pros" },
   { id: "assos", label: "🎭 Associations" },
   { id: "mairies", label: "🏛️ Mairies" },
+  { id: "ambassadeurs", label: "📣 Ambassadeurs" },
   { id: "contacts", label: "📬 Messages" },
   { id: "reglages", label: "⚙️ Réglages" },
 ];
@@ -67,7 +68,7 @@ export default function AdminPage() {
     setLoading(true);
     const actionMap: Record<Tab, string> = {
       stats: "stats", moderation: "signalements", avis: "avis_signales", annonces: "annonces",
-      users: "users", pros: "pros", assos: "assos", mairies: "communes_certifiees", contacts: "contacts", reglages: "settings",
+      users: "users", pros: "pros", assos: "assos", mairies: "communes_certifiees", ambassadeurs: "ambassadeurs", contacts: "contacts", reglages: "settings",
     };
     const res = await api(actionMap[t], extra);
     setData(res);
@@ -345,6 +346,42 @@ export default function AdminPage() {
                   className="text-xs font-bold text-neutral-300 hover:text-red-500 transition">🗑️</button>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ===== AMBASSADEURS ===== */}
+        {!loading && tab === "ambassadeurs" && data?.data && (
+          <div className="bg-white rounded-2xl border border-neutral-200 divide-y divide-neutral-100">
+            {data.data.length === 0 && <p className="text-center text-sm font-bold text-neutral-400 py-10">Aucune candidature.</p>}
+            {data.data.map((a: any) => {
+              const s = Array.isArray(a.ambassadeur_stats) ? a.ambassadeur_stats[0] : a.ambassadeur_stats;
+              return (
+                <div key={a.id} className="px-5 py-3.5">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="flex-1 min-w-[160px] font-bold text-sm">{a.nom} <span className="text-neutral-400 font-semibold">· {a.commune}</span></span>
+                    <span className="text-xs font-bold text-neutral-400">{a.profil}</span>
+                    <a href={`mailto:${a.email}`} className="text-xs font-bold text-sky hover:underline">{a.email}</a>
+                    {a.telephone && <span className="text-xs font-bold text-neutral-400">{a.telephone}</span>}
+                    <span className="text-xs font-mono font-bold text-neutral-500">{a.ref_code}</span>
+                    <span className="text-xs font-bold text-neutral-500" title="habitants / pros / collectivités">
+                      👥 {s?.habitants ?? 0} · 💼 {s?.pros ?? 0} · 🏛️ {s?.collectivites ?? 0}
+                    </span>
+                    <button
+                      onClick={() => act("ambassadeur_set_statut", { id: a.id, value: a.statut === "actif" ? "inactif" : "actif" },
+                        a.statut === "actif" ? "Ambassadeur désactivé" : "Ambassadeur activé")}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition ${
+                        a.statut === "actif" ? "bg-mint/15 text-mint" : a.statut === "candidat" ? "bg-amber-100 text-amber-700" : "bg-neutral-100 text-neutral-400"
+                      }`}
+                    >
+                      {a.statut === "actif" ? "✓ Actif" : a.statut === "candidat" ? "⏳ À valider" : "Inactif"}
+                    </button>
+                    <button onClick={() => { if (window.confirm("Supprimer cette candidature ?")) act("ambassadeur_supprimer", { id: a.id }, "Candidature supprimée"); }}
+                      className="text-xs font-bold text-neutral-300 hover:text-red-500 transition">🗑️</button>
+                  </div>
+                  {a.motivation && <p className="mt-1.5 text-xs font-body text-neutral-500">{a.motivation}</p>}
+                </div>
+              );
+            })}
           </div>
         )}
 

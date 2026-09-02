@@ -34,6 +34,7 @@ export default function Footer() {
               <li><a href="/pro" className="text-white/70 hover:text-white transition">Devenir Pro du quartier</a></li>
               <li><a href="/mairies" className="text-white/70 hover:text-white transition">Vous êtes une mairie ?</a></li>
               <li><a href="/mairies" className="text-white/70 hover:text-white transition">Commune certifiée ✓</a></li>
+              <li><a href="/ambassadeurs" className="text-white/70 hover:text-white transition">Devenir ambassadeur 📣</a></li>
             </ul>
           </div>
 

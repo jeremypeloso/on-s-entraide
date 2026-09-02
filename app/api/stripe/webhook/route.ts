@@ -20,6 +20,17 @@ export async function POST(request: Request) {
 
   const db = createAdminClient();
 
+  // Si l'utilisateur a été amené par un ambassadeur (parrainage "habitant"),
+  // on crédite aussi l'ambassadeur pour l'abonnement pro ou mairie.
+  async function creditAmbassadeur(userId: string, type: "pro" | "collectivite") {
+    const { data: p } = await db.from("parrainages").select("ambassadeur_id").eq("filleul_user_id", userId).eq("type", "habitant").maybeSingle();
+    if (!p) return;
+    await db.from("parrainages").upsert(
+      { ambassadeur_id: p.ambassadeur_id, filleul_user_id: userId, type },
+      { onConflict: "filleul_user_id,type", ignoreDuplicates: true }
+    );
+  }
+
   async function applySubscription(sub: Stripe.Subscription) {
     const meta = sub.metadata ?? {};
     const status = sub.status; // active, trialing, past_due, canceled, unpaid, incomplete...
@@ -36,6 +47,7 @@ export async function POST(request: Request) {
         stripe_subscription_id: sub.id,
         current_period_end: periodEnd,
       }).eq("id", meta.user_id);
+      if (active) await creditAmbassadeur(meta.user_id, "pro");
     }
 
     if (meta.type === "mairie" && meta.commune_id) {
@@ -49,6 +61,7 @@ export async function POST(request: Request) {
         source: "stripe",
       }, { onConflict: "commune_id" });
       await db.from("communes").update({ is_certified: active }).eq("id", meta.commune_id);
+      if (active && meta.user_id) await creditAmbassadeur(meta.user_id, "collectivite");
     }
   }
 

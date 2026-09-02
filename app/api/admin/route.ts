@@ -334,6 +334,23 @@ export async function POST(request: Request) {
         return NextResponse.json({ ok: true });
       }
 
+      // ===== AMBASSADEURS =====
+      case "ambassadeurs": {
+        const { data } = await db
+          .from("ambassadeurs")
+          .select("id, nom, email, telephone, commune, profil, motivation, ref_code, statut, created_at, ambassadeur_stats(habitants, pros, collectivites)")
+          .order("created_at", { ascending: false });
+        return NextResponse.json({ data });
+      }
+      case "ambassadeur_set_statut": {
+        await db.from("ambassadeurs").update({ statut: payload.value }).eq("id", payload.id);
+        return NextResponse.json({ ok: true });
+      }
+      case "ambassadeur_supprimer": {
+        await db.from("ambassadeurs").delete().eq("id", payload.id);
+        return NextResponse.json({ ok: true });
+      }
+
       default:
         return NextResponse.json({ error: "Action inconnue" }, { status: 400 });
     }
