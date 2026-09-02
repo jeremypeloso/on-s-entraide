@@ -220,31 +220,31 @@ export default function ComptePage() {
           </div>
           <a
             href="/messages"
-            className="text-sm font-bold px-5 py-2.5 rounded-full border-2 border-neutral-200 text-ink/70 hover:border-coral hover:text-coral-dark transition"
+            className="text-xs font-bold px-4 py-2 rounded-full border-2 border-neutral-200 text-ink/70 hover:border-coral hover:text-coral-dark transition whitespace-nowrap"
           >
-            💬 Mes messages
+            💬 Messages
           </a>
           {isAmbassadeur && (
             <a
               href="/ambassadeurs/espace"
-              className="text-sm font-bold px-5 py-2.5 rounded-full bg-gradient-to-br from-coral to-coral-dark text-white shadow-md shadow-coral/20 hover:brightness-105 transition flex items-center gap-2"
+              className="text-xs font-bold px-4 py-2 rounded-full bg-gradient-to-br from-coral to-coral-dark text-white shadow-md shadow-coral/20 hover:brightness-105 transition whitespace-nowrap"
             >
-              📣 Espace ambassadeur
+              📣 Ambassadeur
             </a>
           )}
           {isAdmin && (
             <a
               href="/admin"
-              className="text-sm font-bold px-5 py-2.5 rounded-full bg-ink text-white hover:bg-ink/85 transition flex items-center gap-2"
+              className="text-xs font-bold px-4 py-2 rounded-full bg-ink text-white hover:bg-ink/85 transition whitespace-nowrap"
             >
-              🎛️ Administration
+              🎛️ Admin
             </a>
           )}
           <button
             onClick={logout}
-            className="text-sm font-bold px-5 py-2.5 rounded-full border-2 border-neutral-200 text-neutral-500 hover:border-red-300 hover:text-red-500 transition"
+            className="text-xs font-bold px-4 py-2 rounded-full border-2 border-neutral-200 text-neutral-500 hover:border-red-300 hover:text-red-500 transition whitespace-nowrap"
           >
-            Se déconnecter
+            Déconnexion
           </button>
         </div>
 
