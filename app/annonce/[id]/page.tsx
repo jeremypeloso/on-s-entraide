@@ -6,6 +6,28 @@ import AnnonceOwnerActions from "@/components/AnnonceOwnerActions";
 import AdminBadge from "@/components/AdminBadge";
 import ReportButton from "@/components/ReportButton";
 import ContactButton from "@/components/ContactButton";
+import ShareButtons from "@/components/ShareButtons";
+import type { Metadata } from "next";
+
+const SITE = "https://onseditout.fr";
+
+// Aperçu riche quand l'annonce est partagée (Facebook, WhatsApp, SMS…)
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: a } = await supabase.from("annonces").select("title, description, photo_url, categories(emoji, nom), communes(nom)").eq("id", id).maybeSingle();
+  if (!a) return {};
+  const cat = (a as any).categories, com = (a as any).communes;
+  const title = `${cat?.emoji ?? ""} ${a.title} · ${com?.nom ?? ""}`.trim();
+  const description = (a.description ?? `${cat?.nom ?? "Annonce"} entre voisins à ${com?.nom ?? "votre commune"}`).slice(0, 160);
+  const image = a.photo_url && /\.(jpe?g|png|webp)$/i.test(a.photo_url) ? a.photo_url : `${SITE}/og.png`;
+  return {
+    title,
+    description,
+    openGraph: { title, description, url: `${SITE}/annonce/${id}`, siteName: "onseditout.fr", type: "article", images: [{ url: image }] },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+  };
+}
 
 const STATUT_STYLE: Record<string, string> = {
   disponible: "bg-mint/15 text-mint",
@@ -116,6 +138,14 @@ export default async function AnnoncePage({ params }: { params: Promise<{ id: st
                 <div className="flex items-center gap-5 text-xs font-bold text-neutral-400 border-t border-neutral-100 pt-5">
                   <span>📍 {commune?.nom} ({commune?.code_postal})</span>
                   <span>🗓️ Publiée le {publishedDate}</span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 mt-5">
+                  <span className="text-xs font-bold text-neutral-400">Partager :</span>
+                  <ShareButtons
+                    url={`${SITE}/annonce/${annonce.id}`}
+                    text={`${annonce.categories?.emoji ?? ""} ${annonce.title} · ${commune?.nom ?? ""} sur onseditout.fr`.trim()}
+                  />
                 </div>
               </div>
             </article>
