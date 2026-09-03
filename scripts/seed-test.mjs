@@ -19,7 +19,7 @@ if (!url || !key) { console.error("Variables NEXT_PUBLIC_SUPABASE_URL / SUPABASE
 const db = createClient(url, key, { auth: { persistSession: false } });
 
 const PASSWORD = "Test1234!";
-const COMMUNE = { code_insee: "99999", nom: "Villeneuve-des-Tests", slug: "villeneuve-des-tests", code_postal: "78999", departement: "Yvelines", region: "Île-de-France", population: 1234, lat: 49.05, lng: 1.55 };
+const COMMUNE = { code_insee: "99999", nom: "Villeneuve-des-Tests", slug: "villeneuve-des-tests", code_postal: "78999", departement: "Yvelines", region: "Île-de-France", population: 1234, lat: 49.05, lng: 1.55, is_test: true };
 const USERS = [
   { key: "marie",   email: "test+marie@onseditout.fr",   name: "Marie Testard" },
   { key: "karim",   email: "test+karim@onseditout.fr",   name: "Karim Essai" },

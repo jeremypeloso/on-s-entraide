@@ -68,8 +68,9 @@ export default async function HomePage() {
   const supabase = await createClient();
   const { data: recentes } = await supabase
     .from("annonces")
-    .select("id, title, description, created_at, statut, categories(label, emoji, color_hex), communes(nom, slug)")
+    .select("id, title, description, created_at, statut, categories(label, emoji, color_hex), communes!inner(nom, slug, is_test)")
     .eq("statut", "disponible")
+    .eq("communes.is_test", false)
     .order("created_at", { ascending: false })
     .limit(10);
 
