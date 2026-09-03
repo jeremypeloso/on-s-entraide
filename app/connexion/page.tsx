@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -9,6 +9,35 @@ export default function ConnexionPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  // Commune de résidence à l'inscription (facultative, modifiable ensuite dans Mon compte)
+  type Commune = { id: string; nom: string; code_postal: string | null; departement: string | null };
+  const [commune, setCommune] = useState<Commune | null>(null);
+  const [communeQuery, setCommuneQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<Commune[]>([]);
+  const [openSuggest, setOpenSuggest] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const q = communeQuery.trim();
+    if (q.length < 2) { setSuggestions([]); setOpenSuggest(false); return; }
+    debounceRef.current = setTimeout(async () => {
+      const supabase = createClient();
+      const isPostal = /^\d{2,5}$/.test(q);
+      let req = supabase.from("communes").select("id, nom, code_postal, departement").order("population", { ascending: false, nullsFirst: false }).limit(8);
+      req = isPostal ? req.ilike("code_postal", `${q}%`) : req.ilike("nom", `%${q}%`);
+      const { data } = await req;
+      setSuggestions(data ?? []);
+      setOpenSuggest(true);
+    }, 250);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [communeQuery]);
+
+  async function declareResidence(communeId: string) {
+    try {
+      await fetch("/api/residence", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ communeId }) });
+    } catch {}
+  }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -23,7 +52,7 @@ export default function ConnexionPage() {
     const supabase = createClient();
 
     if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       setLoading(false);
       if (error) {
         setError(
@@ -33,13 +62,24 @@ export default function ConnexionPage() {
         );
         return;
       }
+      // Commune choisie à l'inscription mais pas encore enregistrée (confirmation email) : on la déclare maintenant
+      const pendingCommune = data.user?.user_metadata?.commune_id as string | undefined;
+      if (pendingCommune) {
+        const { data: prof } = await supabase.from("profiles").select("commune_residence_id").eq("id", data.user!.id).maybeSingle();
+        if (!prof?.commune_residence_id) await declareResidence(pendingCommune);
+      }
       router.push("/");
       router.refresh();
     } else {
+      if (!commune) {
+        setLoading(false);
+        setError("Choisissez votre commune de résidence dans la liste.");
+        return;
+      }
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: { data: { full_name: fullName, commune_id: commune.id } },
       });
       setLoading(false);
       if (error) {
@@ -50,6 +90,7 @@ export default function ConnexionPage() {
       if (data.user) {
         await supabase.from("profiles").upsert({ id: data.user.id, full_name: fullName });
       }
+      if (data.session) await declareResidence(commune.id);
       if (data.session) {
         // Parrainage ambassadeur (cookie osdt_ref posé par un lien ?ref=AMB-XXXXX)
         fetch("/api/ambassadeurs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "parrainage" }) }).catch(() => {});
@@ -114,6 +155,45 @@ export default function ConnexionPage() {
             </div>
           )}
 
+          {mode === "signup" && (
+            <div className="relative">
+              <label className="block text-xs font-bold text-neutral-500 mb-1.5">Ma commune de résidence</label>
+              {commune ? (
+                <div className="flex items-center justify-between bg-mint/10 border-2 border-mint/30 rounded-xl px-4 py-3 text-sm font-semibold">
+                  <span>🏡 {commune.nom}{commune.code_postal ? ` (${commune.code_postal})` : ""}</span>
+                  <button type="button" onClick={() => { setCommune(null); setCommuneQuery(""); }} className="text-xs font-bold text-neutral-400 hover:text-red-500">Changer</button>
+                </div>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    value={communeQuery}
+                    onChange={(e) => setCommuneQuery(e.target.value)}
+                    onFocus={() => suggestions.length && setOpenSuggest(true)}
+                    onBlur={() => setTimeout(() => setOpenSuggest(false), 150)}
+                    placeholder="Nom ou code postal, puis choisissez dans la liste"
+                    autoComplete="off"
+                    required
+                    className="w-full bg-neutral-50 border-2 border-transparent focus:border-coral/50 rounded-xl px-4 py-3 text-sm font-semibold outline-none transition"
+                  />
+                  {openSuggest && suggestions.length > 0 && (
+                    <ul className="absolute z-20 left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xl shadow-xl overflow-hidden">
+                      {suggestions.map((c) => (
+                        <li key={c.id}>
+                          <button type="button" onMouseDown={() => { setCommune(c); setOpenSuggest(false); }}
+                            className="w-full text-left px-4 py-2.5 text-sm font-semibold hover:bg-neutral-50 flex justify-between">
+                            <span>{c.nom}</span>
+                            <span className="text-neutral-400 text-xs">{c.code_postal}{c.departement ? ` · ${c.departement}` : ""}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-bold text-neutral-500 mb-1.5">Email</label>
             <input
@@ -166,7 +246,7 @@ export default function ConnexionPage() {
         <p className="text-xs text-neutral-400 font-body font-semibold text-center mt-6">
           {mode === "signup"
             ? "En créant un compte, vous acceptez nos conditions d'utilisation."
-            : "Après connexion, vous pourrez déclarer votre commune de résidence."}
+            : "Vous pourrez toujours changer votre commune dans Mon compte."}
         </p>
       </div>
     </main>
