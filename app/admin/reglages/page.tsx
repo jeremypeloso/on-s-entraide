@@ -11,10 +11,15 @@ export default function Page() {
   const [stripe, setStripe] = useState<any>(null);
   const [stripeBusy, setStripeBusy] = useState(false);
   const [emails, setEmails] = useState<any>(null);
+  const [newsTitle, setNewsTitle] = useState<string | null>(null);
+  const [newsItems, setNewsItems] = useState<string | null>(null);
   const [emailsBusy, setEmailsBusy] = useState(false);
 
   if (loading || !data) return <><PageHeader title="Réglages" /><Loading /></>;
   const m = data.data?.maintenance ?? { enabled: false, message: "" };
+  const n = data.data?.nouveautes ?? { enabled: false, version: 0, title: "", items: [] as string[], date: null };
+  const title = newsTitle ?? n.title ?? "";
+  const items = newsItems ?? (n.items ?? []).join("\n");
 
   return (
     <>
@@ -35,6 +40,36 @@ export default function Page() {
             <label className="block text-xs font-bold text-neutral-500 mb-1.5">Message affiché aux visiteurs</label>
             <Textarea defaultValue={m.message} onChange={(e) => setMaintMsg(e.target.value)} maxLength={300} rows={3} placeholder="Nous améliorons le site pour vous. Revenez dans quelques instants !" />
             <div className="mt-2"><Btn onClick={() => act("set_maintenance", { enabled: m.enabled, message: maintMsg || m.message }, "Message enregistré")}>Enregistrer le message</Btn></div>
+          </div>
+        </Card>
+
+        <Card className="p-6" tone={n.enabled ? "warn" : undefined}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-bold text-lg">✨ Quoi de neuf</h3>
+              <p className="text-sm text-neutral-500 font-body mt-1">Fenêtre affichée une fois à chaque visiteur après chaque publication. Une nouveauté par ligne, dix maximum.</p>
+              <p className={`text-sm font-bold mt-3 ${n.enabled ? "text-amber-700" : "text-neutral-400"}`}>
+                {n.enabled ? `● Affichée${n.date ? ` · publiée le ${new Date(n.date).toLocaleDateString("fr-FR")}` : ""}` : "● Masquée"}
+              </p>
+            </div>
+            <Btn tone={n.enabled ? "ghost" : "mint"} size="md" onClick={() => act("set_nouveautes", { enabled: !n.enabled, title, items, publish: false }, n.enabled ? "Fenêtre masquée" : "Fenêtre activée")}>
+              {n.enabled ? "Masquer" : "Activer"}
+            </Btn>
+          </div>
+          <div className="mt-5 space-y-3">
+            <div>
+              <label className="block text-xs font-bold text-neutral-500 mb-1.5">Titre</label>
+              <input value={title} onChange={(e) => setNewsTitle(e.target.value)} maxLength={80} placeholder="Du nouveau sur le site ✨"
+                className="w-full bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-ink transition font-body" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-neutral-500 mb-1.5">Nouveautés (une par ligne)</label>
+              <Textarea value={items} onChange={(e) => setNewsItems(e.target.value)} rows={5} placeholder={"Partagez vos annonces sur WhatsApp et Facebook\nChoisissez votre commune dès l'inscription\nProgramme ambassadeurs : devenez la voix de votre commune"} />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Btn tone="primary" onClick={() => act("set_nouveautes", { enabled: true, title, items, publish: true }, "Nouveautés publiées, tout le monde les verra à sa prochaine visite")}>Publier (nouvelle version)</Btn>
+              <Btn onClick={() => act("set_nouveautes", { enabled: n.enabled, title, items, publish: false }, "Texte enregistré sans republier")}>Enregistrer sans republier</Btn>
+            </div>
           </div>
         </Card>
 

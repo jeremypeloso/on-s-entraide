@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "seed:test": "node scripts/seed-test.mjs",
+    "seed:reset": "node scripts/seed-test.mjs --reset",
     "db:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > lib/supabase/types.ts"
   },
   "dependencies": {

@@ -144,6 +144,17 @@ export async function POST(request: Request) {
         const { data } = await db.from("site_settings").select("key, value");
         return NextResponse.json({ data: Object.fromEntries((data ?? []).map((r) => [r.key, r.value])) });
       }
+      case "set_nouveautes": {
+        const items = String(payload.items ?? "").split("\n").map((l) => l.trim().replace(/^[-•*]\s*/, "")).filter(Boolean).slice(0, 10);
+        const current = (await db.from("site_settings").select("value").eq("key", "nouveautes").maybeSingle()).data?.value as any;
+        const version = payload.publish ? Date.now() : (current?.version ?? 0);
+        await db.from("site_settings").upsert({
+          key: "nouveautes",
+          value: { enabled: !!payload.enabled, version, date: new Date().toISOString(), title: String(payload.title ?? "").slice(0, 80), items },
+          updated_at: new Date().toISOString(),
+        });
+        return NextResponse.json({ ok: true });
+      }
       case "set_maintenance": {
         await db.from("site_settings").upsert({
           key: "maintenance",

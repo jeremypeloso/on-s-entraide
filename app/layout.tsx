@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollTop from "@/components/ScrollTop";
 import RefCapture from "@/components/RefCapture";
+import NouveautesPopup from "@/components/NouveautesPopup";
 import { Suspense } from "react";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" className={`${baloo.variable} ${jakarta.variable}`}>
       <body className="font-body">
         <Suspense fallback={null}><RefCapture /></Suspense>
+        <NouveautesPopup />
         <Header />
         {children}
         <Footer />
