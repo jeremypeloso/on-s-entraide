@@ -15,16 +15,17 @@ const SITE = "https://onseditout.fr";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: a } = await supabase.from("annonces").select("title, description, photo_url, categories(emoji, nom), communes(nom)").eq("id", id).maybeSingle();
+  const { data: a } = await supabase.from("annonces").select("title, description, photo_url, categories(emoji, label), communes(nom)").eq("id", id).maybeSingle();
   if (!a) return {};
   const cat = (a as any).categories, com = (a as any).communes;
   const title = `${cat?.emoji ?? ""} ${a.title} · ${com?.nom ?? ""}`.trim();
-  const description = (a.description ?? `${cat?.nom ?? "Annonce"} entre voisins à ${com?.nom ?? "votre commune"}`).slice(0, 160);
+  const description = (a.description ?? `${cat?.label ?? "Annonce"} entre voisins à ${com?.nom ?? "votre commune"}`).slice(0, 160);
   const image = a.photo_url && /\.(jpe?g|png|webp)$/i.test(a.photo_url) ? a.photo_url : `${SITE}/og.png`;
   return {
     title,
     description,
-    openGraph: { title, description, url: `${SITE}/annonce/${id}`, siteName: "onseditout.fr", type: "article", images: [{ url: image }] },
+    alternates: { canonical: `${SITE}/annonce/${id}` },
+    openGraph: { title, description, url: `${SITE}/annonce/${id}`, siteName: "onseditout.fr", type: "article", images: [{ url: image, alt: a.title }] },
     twitter: { card: "summary_large_image", title, description, images: [image] },
   };
 }
